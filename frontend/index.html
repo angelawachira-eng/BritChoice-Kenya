@@ -511,42 +511,90 @@
       
       <div class="testimonials-block">
         <h2>What Our Customers Say</h2>
-        <div class="testimonials-grid">
-          <div class="testimonial-card">
-            <div class="stars">
-              <i data-lucide="star" class="star-filled"></i>
-              <i data-lucide="star" class="star-filled"></i>
-              <i data-lucide="star" class="star-filled"></i>
-              <i data-lucide="star" class="star-filled"></i>
-              <i data-lucide="star" class="star-filled"></i>
-            </div>
-            <p>"Authentic UK products! I was so excited to find Ariel laundry gel and The Pink Stuff paste here. Sourced in the UK, picked up in CBD the same day!"</p>
-            <div class="customer-info">
-              <div class="cust-avatar">AN</div>
-              <div>
-                <h4>Angela N.</h4>
-                <span>Nairobi CBD</span>
+        <p class="testimonials-subtitle">Real reviews from our Nairobi community</p>
+
+        <div class="testimonial-carousel" id="testimonial-carousel">
+          <!-- Track that slides left/right -->
+          <div class="testimonial-track" id="testimonial-track">
+
+            <div class="testimonial-card">
+              <div class="stars">
+                <i data-lucide="star" class="star-filled"></i><i data-lucide="star" class="star-filled"></i>
+                <i data-lucide="star" class="star-filled"></i><i data-lucide="star" class="star-filled"></i>
+                <i data-lucide="star" class="star-filled"></i>
+              </div>
+              <p>"Authentic UK products! I was so excited to find Ariel laundry gel and The Pink Stuff paste here. Sourced in the UK, picked up in CBD the same day!"</p>
+              <div class="customer-info">
+                <div class="cust-avatar">AN</div>
+                <div><h4>Angela N.</h4><span>Nairobi CBD</span></div>
               </div>
             </div>
-          </div>
-          <div class="testimonial-card">
-            <div class="stars">
-              <i data-lucide="star" class="star-filled"></i>
-              <i data-lucide="star" class="star-filled"></i>
-              <i data-lucide="star" class="star-filled"></i>
-              <i data-lucide="star" class="star-filled"></i>
-              <i data-lucide="star" class="star-filled"></i>
-            </div>
-            <p>"The supplements are exactly the same brands I buy when I'm in London. Seamless checkout via WhatsApp and convenient pick-up at Kahawa Sukari."</p>
-            <div class="customer-info">
-              <div class="cust-avatar">JK</div>
-              <div>
-                <h4>Joseph K.</h4>
-                <span>Kahawa Sukari</span>
+
+            <div class="testimonial-card">
+              <div class="stars">
+                <i data-lucide="star" class="star-filled"></i><i data-lucide="star" class="star-filled"></i>
+                <i data-lucide="star" class="star-filled"></i><i data-lucide="star" class="star-filled"></i>
+                <i data-lucide="star" class="star-filled"></i>
+              </div>
+              <p>"The supplements are exactly the same brands I buy when I'm in London. Seamless checkout via WhatsApp and convenient pick-up at Kahawa Sukari."</p>
+              <div class="customer-info">
+                <div class="cust-avatar">JK</div>
+                <div><h4>Joseph K.</h4><span>Kahawa Sukari</span></div>
               </div>
             </div>
-          </div>
+
+            <div class="testimonial-card">
+              <div class="stars">
+                <i data-lucide="star" class="star-filled"></i><i data-lucide="star" class="star-filled"></i>
+                <i data-lucide="star" class="star-filled"></i><i data-lucide="star" class="star-filled"></i>
+                <i data-lucide="star" class="star-filled"></i>
+              </div>
+              <p>"I ordered Sensodyne and Colgate Max White — 100% genuine, sealed boxes. Much cheaper than importing myself. Will definitely order again!"</p>
+              <div class="customer-info">
+                <div class="cust-avatar">FM</div>
+                <div><h4>Faith M.</h4><span>Westlands, Nairobi</span></div>
+              </div>
+            </div>
+
+            <div class="testimonial-card">
+              <div class="stars">
+                <i data-lucide="star" class="star-filled"></i><i data-lucide="star" class="star-filled"></i>
+                <i data-lucide="star" class="star-filled"></i><i data-lucide="star" class="star-filled"></i>
+                <i data-lucide="star" class="star-filled"></i>
+              </div>
+              <p>"Peter responded on WhatsApp within minutes, confirmed stock, and I picked up my Vitamin D supplements at CBD the next morning. Outstanding service!"</p>
+              <div class="customer-info">
+                <div class="cust-avatar">DW</div>
+                <div><h4>David W.</h4><span>Kilimani, Nairobi</span></div>
+              </div>
+            </div>
+
+            <div class="testimonial-card">
+              <div class="stars">
+                <i data-lucide="star" class="star-filled"></i><i data-lucide="star" class="star-filled"></i>
+                <i data-lucide="star" class="star-filled"></i><i data-lucide="star" class="star-filled"></i>
+                <i data-lucide="star" class="star-filled"></i>
+              </div>
+              <p>"Finally found Flash and Dettol spray that actually works like the real thing! The packaging is original UK, not the diluted versions sold locally. Love it!"</p>
+              <div class="customer-info">
+                <div class="cust-avatar">GN</div>
+                <div><h4>Grace N.</h4><span>Ruaka, Kiambu</span></div>
+              </div>
+            </div>
+
+          </div><!-- end track -->
+
+          <!-- Prev / Next Arrows -->
+          <button class="carousel-btn carousel-prev" id="carousel-prev" aria-label="Previous review">
+            <i data-lucide="chevron-left"></i>
+          </button>
+          <button class="carousel-btn carousel-next" id="carousel-next" aria-label="Next review">
+            <i data-lucide="chevron-right"></i>
+          </button>
         </div>
+
+        <!-- Dot Indicators -->
+        <div class="carousel-dots" id="carousel-dots"></div>
       </div>
     </div>
   </section>
