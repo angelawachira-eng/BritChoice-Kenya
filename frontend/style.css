@@ -3667,6 +3667,10 @@ body {
 
 /* 6. Layout padding modifications on Mobile */
 @media (max-width: 768px) {
+  :root {
+    --header-height: 116px; /* Expanded header height for mobile grid rows */
+  }
+
   body {
     padding-bottom: calc(64px + env(safe-area-inset-bottom, 0));
   }
@@ -3695,6 +3699,59 @@ body {
   }
   .hero-container p {
     display: none !important; /* Hide long description text */
+  }
+
+  /* Two-Row Mobile Header (Logo & actions Row 1, Search Row 2) */
+  .app-header {
+    height: var(--header-height) !important;
+    padding: 12px 0 !important;
+  }
+
+  .header-container {
+    display: grid !important;
+    grid-template-columns: auto 1fr !important;
+    grid-template-rows: auto auto !important;
+    gap: 10px !important;
+    padding: 0 16px !important;
+  }
+
+  .logo-area {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: center;
+  }
+
+  .header-actions {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    align-self: center;
+    gap: 6px !important;
+  }
+
+  .search-wrapper {
+    grid-column: 1 / span 2;
+    grid-row: 2;
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  /* Lock drawer headers to 80px so they don't stretch with mobile root --header-height */
+  .cart-drawer-header,
+  .mobile-drawer-header {
+    height: 80px !important;
+  }
+
+  /* Wrap footer links on mobile to prevent stretching page width */
+  .footer-links {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 8px 16px !important;
+    margin-top: 14px !important;
+  }
+
+  .footer-links .divider {
+    display: none !important; /* Hide dot separators on mobile since links wrap */
   }
 }
 
