@@ -2598,7 +2598,7 @@ button {
   .cookie-banner-wrap {
     left: 12px;
     right: 12px;
-    bottom: 12px;
+    bottom: calc(12px + 64px + env(safe-area-inset-bottom, 0px));
   }
   .cookie-banner-content {
     grid-template-columns: 1fr;
@@ -3157,7 +3157,7 @@ body {
   z-index: 300;
   display: none; /* Desktop hidden */
   justify-content: space-around;
-  align-items: center;
+  align-items: flex-start; /* Align buttons to the top, leaving safe area empty below */
   padding-bottom: env(safe-area-inset-bottom, 0);
   height: calc(64px + env(safe-area-inset-bottom, 0));
   box-sizing: border-box;
@@ -3165,7 +3165,7 @@ body {
 
 .mobile-bottom-nav-btn {
   flex: 1;
-  height: 100%;
+  height: 64px; /* Fixed height to match navigation content area */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -3332,7 +3332,11 @@ body {
   }
 
   .cart-drawer-body-scroll {
-    padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: 0;
+  }
+
+  .cart-footer {
+    padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
 
