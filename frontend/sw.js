@@ -1,74 +1,57 @@
-const CACHE_NAME = 'britchoice-cache-v6';
-const ASSETS = [
-  '/',
-  '/static/style.css',
-  '/static/app.js',
-  '/static/manifest.json',
-  '/static/icon-192.png',
-  '/static/icon-512.png'
-];
+const CACHE_NAME = 'britchoice-cache-v8';
 
-// Cache core assets on installation
+// Install — skip waiting so new SW takes over immediately
 self.addEventListener('install', (e) => {
   self.skipWaiting();
-  e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS).catch(err => console.log("Cache compilation deferred:", err));
-    })
-  );
 });
 
-// Clean up old caches on activation
+// Activate — clear all old caches, claim all clients, then tell them to reload
 self.addEventListener('activate', (e) => {
   e.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
-      );
+    caches.keys().then((keys) =>
+      Promise.all(keys.map((key) => {
+        if (key !== CACHE_NAME) return caches.delete(key);
+      }))
+    ).then(() => {
+      // Take control of all open pages immediately
+      return self.clients.claim();
+    }).then(() => {
+      // Tell every open tab to reload so they get fresh files
+      return self.clients.matchAll({ type: 'window' }).then((clients) => {
+        clients.forEach((client) => client.postMessage({ type: 'RELOAD' }));
+      });
     })
   );
-  return self.clients.claim();
 });
 
-// Intercept network requests cleanly
+// Fetch — NETWORK FIRST strategy
+// Always try the network first, cache the result, fall back to cache if offline
 self.addEventListener('fetch', (e) => {
-  // 1. Only intercept GET requests from our own origin, excluding API, Admin, and media
   const isSelfOrigin = e.request.url.startsWith(self.location.origin);
   const isApiOrAdmin = e.request.url.includes('/api/') || e.request.url.includes('/admin/');
-  
+
+  // Only intercept same-origin GET requests that aren't API/admin
   if (e.request.method !== 'GET' || !isSelfOrigin || isApiOrAdmin) {
-    return; // Pass through natively at full speed
+    return;
   }
-  
+
   e.respondWith(
-    caches.match(e.request).then((cachedResponse) => {
-      // Return cached version instantly (CSS, JS, html)
-      if (cachedResponse) {
-        return cachedResponse;
+    fetch(e.request).then((networkResponse) => {
+      // Cache successful responses for offline fallback
+      const isStaticFile = e.request.url.match(/\.(js|css|json|woff2|ttf|ico|png)$/)
+        || e.request.url === self.location.origin + '/';
+
+      if (networkResponse.status === 200 && isStaticFile) {
+        const cacheCopy = networkResponse.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(e.request, cacheCopy));
       }
-      
-      return fetch(e.request).then((networkResponse) => {
-        // Cache core static files on the fly (CSS, JS, fonts, json)
-        // Avoid caching images dynamically to save system resources and network overhead
-        const isStaticFile = e.request.url.match(/\.(js|css|json|woff2|ttf|ico|png)$/) || e.request.url === self.location.origin + '/';
-        
-        if (networkResponse.status === 200 && isStaticFile) {
-          const cacheCopy = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(e.request, cacheCopy);
-          });
-        }
-        return networkResponse;
-      }).catch((err) => {
-        // Only fallback to root index.html for page navigation, NEVER for images
-        if (e.request.mode === 'navigate') {
-          return caches.match('/');
-        }
-        // Let image/style requests fail naturally without breaking layouts
+      return networkResponse;
+    }).catch(() => {
+      // Offline fallback — serve from cache
+      return caches.match(e.request).then((cached) => {
+        if (cached) return cached;
+        // Last resort for navigation: return cached home page
+        if (e.request.mode === 'navigate') return caches.match('/');
         return null;
       });
     })

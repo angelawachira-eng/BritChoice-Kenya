@@ -144,6 +144,12 @@ function initPWAInstall() {
         .then(reg => console.log('Service Worker registered with scope:', reg.scope))
         .catch(err => console.log('Service Worker registration failed:', err));
     });
+    navigator.serviceWorker.addEventListener('message', (e) => {
+      if (e.data && e.data.type === 'RELOAD') {
+        console.log('New Service Worker active. Reloading page...');
+        window.location.reload();
+      }
+    });
   }
 
   window.addEventListener('beforeinstallprompt', (e) => {
@@ -644,7 +650,7 @@ function setupEventListeners() {
   document.getElementById('logo-refresh-trigger').addEventListener('click', () => {
     resetAllFilters();
     showCatalogView();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToTop();
   });
 
   // Header Navigation Link clicks
@@ -1608,6 +1614,16 @@ async function checkoutWhatsApp() {
 // NEW FEATURES: VIEW SWAPPER, GEOLOCATION MAPS
 // ==========================================
 
+// Helper to scroll the fixed container to the top
+function scrollToTop() {
+  const container = document.getElementById('app-body-container');
+  if (container) {
+    container.scrollTo({ top: 0, behavior: 'smooth' });
+  } else {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
 // View Swapper Functions
 function showCatalogView() {
   document.getElementById('about-page-view').classList.add('hidden');
@@ -1626,7 +1642,7 @@ function showAboutView() {
   document.querySelector('.trust-testimonials-section').classList.add('hidden');
   setActiveHeaderLink('nav-about-btn');
   setActiveBottomNavTab('btn-bottom-about');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  scrollToTop();
 }
 
 // Map and Geolocation functionality
