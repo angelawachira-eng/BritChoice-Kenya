@@ -496,6 +496,7 @@ button {
   display: flex;
   flex-direction: column;
   gap: 24px;
+  min-width: 0; /* Prevents grid column stretching on mobile layout */
 }
 
 .catalog-header {
@@ -1408,13 +1409,13 @@ button {
 /* Responsive Breakpoints */
 @media (max-width: 1024px) {
   .main-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 32px;
   }
   
   .sidebar {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 24px;
   }
 }
@@ -1422,6 +1423,7 @@ button {
 @media (max-width: 768px) {
   .header-container {
     padding: 0 16px;
+    gap: 12px;
   }
   
   .logo-text {
@@ -1430,6 +1432,41 @@ button {
   
   .search-wrapper {
     max-width: none;
+  }
+  
+  .search-wrapper input {
+    height: 40px;
+    padding: 0 40px;
+  }
+  
+  .search-icon {
+    left: 14px;
+    width: 16px;
+    height: 16px;
+  }
+  
+  #search-clear-btn {
+    right: 14px;
+  }
+  
+  .logo-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+  
+  .header-actions {
+    gap: 8px;
+  }
+  
+  .icon-badge-btn, .google-translate-wrapper {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .icon-badge-btn i, .google-translate-wrapper i {
+    width: 18px;
+    height: 18px;
   }
   
   .hero-section {
@@ -1441,12 +1478,13 @@ button {
   }
   
   .main-layout {
+    grid-template-columns: minmax(0, 1fr);
     padding: 0 16px;
     margin: 24px auto;
   }
   
   .sidebar {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 20px;
   }
   
@@ -1470,6 +1508,22 @@ button {
   
   .footer-info {
     text-align: center;
+  }
+}
+
+@media (max-width: 576px) {
+  .catalog-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .sort-wrapper {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .sort-wrapper select {
+    flex: 1;
+    max-width: 200px;
   }
 }
 
