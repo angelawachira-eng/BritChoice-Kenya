@@ -14,14 +14,37 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+import os
 from django.contrib import admin
-from django.urls import path
-
-urlpatterns = [
-    path('admin/', admin.site.urls),
-]
-
+from django.urls import path, include
+from django.http import HttpResponse
 from django.conf import settings
 from django.conf.urls.static import static
 
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+def home(request):
+    file_path = os.path.join(settings.BASE_DIR, 'frontend', 'index.html')
+    if os.path.exists(file_path):
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        response = HttpResponse(content, content_type='text/html')
+        response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        return response
+    return HttpResponse("Frontend index.html not found 🚀", status=404)
+
+def service_worker(request):
+    file_path = os.path.join(settings.BASE_DIR, 'frontend', 'sw.js')
+    if os.path.exists(file_path):
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return HttpResponse(f.read(), content_type='application/javascript')
+    return HttpResponse("// Service worker not found", status=404, content_type='application/javascript')
+
+urlpatterns = [
+    path('', home),
+    path('sw.js', service_worker),
+    path('admin/', admin.site.urls),
+
+    path('api/products/', include('products.urls')),
+]
+
+if settings.DEBUG:
+    urlpatterns += static('/Product_Images/', document_root=settings.BASE_DIR / 'Product_Images')

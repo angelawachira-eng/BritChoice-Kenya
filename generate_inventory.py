@@ -437,8 +437,9 @@ def main():
     if not os.path.exists(excel_dir):
         os.makedirs(excel_dir)
         
-    # 1. Read existing stock & prices if the file already exists
+    # 1. Read existing stock, prices & descriptions if the file already exists
     existing_stock_price = {}  # SKU -> (stock_val, price_val)
+    existing_descriptions = {} # SKU -> description
     
     # Check for existing file in either the new path or the fallback root path
     check_paths = [excel_filename, "BritChoice_Product_Inventory.xlsx"]
@@ -449,19 +450,22 @@ def main():
             break
             
     if read_path:
-        print(f"Reading existing stock and prices from '{read_path}' to preserve them...")
+        print(f"Reading existing stock, prices, and descriptions from '{read_path}' to preserve them...")
         try:
             old_wb = load_workbook(read_path, data_only=True)
             old_ws = old_wb.active
             for r_idx in range(5, old_ws.max_row + 1):
                 sku = old_ws.cell(row=r_idx, column=1).value
+                desc = old_ws.cell(row=r_idx, column=9).value
                 stock = old_ws.cell(row=r_idx, column=10).value
                 price = old_ws.cell(row=r_idx, column=11).value
                 if sku:
                     existing_stock_price[sku] = (stock, price)
-            print(f"Successfully loaded {len(existing_stock_price)} existing stock/price mappings.")
+                    if desc:
+                        existing_descriptions[sku] = desc
+            print(f"Successfully loaded {len(existing_stock_price)} existing stock/price mappings and {len(existing_descriptions)} descriptions.")
         except Exception as e:
-            print(f"Warning: Could not read existing stock/price data ({str(e)}). Preserving might not work.")
+            print(f"Warning: Could not read existing stock/price/description data ({str(e)}). Preserving might not work.")
             
     print("Scanning products...")
     
@@ -497,8 +501,10 @@ def main():
             # Clean capitalization on title
             full_title = clean_capitalization(full_title)
             
-            # Generate description
-            description = generate_product_description(brand, prod_name, variant, cat, qty, unit)
+            # Generate description (preserve existing if present, otherwise generate)
+            description = existing_descriptions.get(sku)
+            if not description:
+                description = generate_product_description(brand, prod_name, variant, cat, qty, unit)
             
             # Relative image path
             img_path = f"{image_dir}/{cat}/{f}"

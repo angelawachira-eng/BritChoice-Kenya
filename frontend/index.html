@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BritChoice Kenya - Premium UK Imports</title>
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Explore premium UK imports in Kenya, including high-quality detergents, skin care, supplements, and household cleaners. Shop online and order via WhatsApp.">
+  <meta name="keywords" content="BritChoice Kenya, UK imports, British products Kenya, detergents, skin care, supplements">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="/static/style.css?v=2">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  
+  <!-- PWA Manifest & App configuration -->
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#1E3A8A">
+  <link rel="apple-touch-icon" href="/static/icon-192.png">
+</head>
+<body>
+  <!-- Glassmorphic Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="logo-area" id="logo-refresh-trigger" style="cursor: pointer;">
+        <div class="logo-icon">BC</div>
+        <div class="logo-text">
+          <h1>BritChoice</h1>
+          <span>Kenya</span>
+        </div>
+      </div>
+      
+      <!-- Desktop Header Navigation -->
+      <nav class="header-nav">
+        <button class="nav-link-btn active" id="nav-catalog-btn"><i data-lucide="layout-grid"></i> <span data-i18n="nav_catalog">Catalog</span></button>
+        <button class="nav-link-btn" id="nav-about-btn"><i data-lucide="book-open"></i> <span data-i18n="nav_story">Our Story</span></button>
+        <button class="nav-link-btn" id="nav-contact-btn"><i data-lucide="map-pin"></i> <span data-i18n="nav_contact">Pick-up & Contact</span></button>
+      </nav>
+      
+      <!-- Search Bar in Header -->
+      <div class="search-wrapper">
+        <i data-lucide="search" class="search-icon"></i>
+        <input type="text" id="search-input" data-i18n-placeholder="search_placeholder" placeholder="Search brands, products, categories...">
+        <button id="search-clear-btn" class="hidden">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <div class="header-actions">
+        <!-- Google Translate Widget -->
+        <div class="google-translate-wrapper">
+          <i data-lucide="globe"></i>
+          <div id="google_translate_element"></div>
+        </div>
+
+        <!-- Install App Button (Hidden by default, shown by PWA prompt) -->
+        <button id="header-install-btn" class="header-install-btn hidden" aria-label="Install App">
+          <i data-lucide="download"></i>
+          <span>Install App</span>
+        </button>
+        
+        <!-- Profile Button -->
+        <button id="profile-toggle-btn" class="icon-badge-btn" aria-label="My Account">
+          <i data-lucide="user"></i>
+          <span id="profile-status-dot" class="profile-dot hidden"></span>
+        </button>
+        
+        <!-- Cart Button -->
+        <button id="cart-toggle-btn" class="icon-badge-btn" aria-label="Shopping Cart">
+          <i data-lucide="shopping-bag"></i>
+          <span id="cart-count-badge" class="badge">0</span>
+        </button>
+
+        <!-- Mobile Menu Toggle Button (3 lines) -->
+        <button id="mobile-menu-toggle-btn" class="icon-badge-btn mobile-only" aria-label="Open Menu">
+          <i data-lucide="menu"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-overlay"></div>
+    <div class="hero-container">
+      <div class="hero-badge"><i data-lucide="sparkles"></i> <span data-i18n="hero_badge">Peter & Maggie's Curated UK Imports</span></div>
+      <h2 data-i18n="hero_title">Bringing the Best of the UK Straight to Kenya</h2>
+      <p data-i18n="hero_desc">Peter and Maggie's handpicked selection of authentic, high-quality British products—from household cleaning and skin care to daily supplements. Sourced directly from UK stores, stored locally in Nairobi, and ready for instant pick-up.</p>
+      
+      <div class="hero-tags">
+        <span class="tag-label" data-i18n="popular_searches">Popular searches:</span>
+        <button class="hero-tag-btn">Ariel</button>
+        <button class="hero-tag-btn">The Pink Stuff</button>
+        <button class="hero-tag-btn">Vanish</button>
+        <button class="hero-tag-btn">Skin Care</button>
+        <button class="hero-tag-btn">Supplements</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Layout -->
+  <main class="main-layout">
+    <!-- Category sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-block">
+        <h3 data-i18n="categories_title">Categories</h3>
+        <ul id="category-filter-list">
+          <li class="active-filter-item" data-category="all">
+            <i data-lucide="layout-grid"></i>
+            <span data-i18n="all_products">All Products</span>
+            <span class="count-pill" id="total-count-pill">-</span>
+          </li>
+          <!-- Loaded dynamically -->
+        </ul>
+      </div>
+
+      <div class="sidebar-block">
+        <h3 data-i18n="select_brand">Select Brand</h3>
+        <div class="brand-select-wrapper">
+          <select id="brand-filter-select" class="premium-select">
+            <!-- Loaded dynamically -->
+          </select>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Catalog Content -->
+    <section class="catalog-content">
+      <div class="catalog-header">
+        <div class="results-info">
+          <h2 id="catalog-title">All Products</h2>
+          <span id="results-count">Showing 0 products</span>
+        </div>
+        <div class="sort-wrapper">
+          <label for="sort-select">Sort by:</label>
+          <select id="sort-select">
+            <option value="default">Default</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+            <option value="name-asc">Alphabetical: A-Z</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Active Filters Bar -->
+      <div id="active-filters-bar" class="active-filters-bar hidden">
+        <span class="filter-label">Active filters:</span>
+        <div id="active-filters-list"></div>
+        <button id="clear-all-filters-btn" class="clear-all-btn">Clear All</button>
+      </div>
+
+      <!-- Product Grid -->
+      <div id="product-grid" class="product-grid">
+        <!-- Loader Skeleton -->
+        <div class="skeleton-loader"></div>
+        <div class="skeleton-loader"></div>
+        <div class="skeleton-loader"></div>
+        <div class="skeleton-loader"></div>
+        <div class="skeleton-loader"></div>
+        <div class="skeleton-loader"></div>
+      </div>
+      
+      <!-- Empty State -->
+      <div id="empty-state" class="empty-state hidden">
+        <i data-lucide="package-search"></i>
+        <h3>No products found</h3>
+        <p>We couldn't find any products matching your search or filters. Try adjusting your terms or resetting filters.</p>
+        <button id="reset-filters-btn" class="btn-primary">Reset Filters</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Dedicated About Page View (Hidden by default) -->
+  <section id="about-page-view" class="about-page-view hidden">
+    <div class="about-page-container">
+      <button id="about-back-btn" class="btn-secondary back-to-catalog-btn">
+        <i data-lucide="arrow-left"></i> <span data-i18n="back_to_catalog">Back to Catalog</span>
+      </button>
+      
+      <div class="about-hero">
+        <div class="about-hero-text">
+          <h2 data-i18n="about_title">Our Story</h2>
+          <p class="lead-text" data-i18n="about_lead">Peter & Maggie's curated imports, direct from the UK to Nairobi.</p>
+        </div>
+      </div>
+
+      <div class="about-content-grid">
+        <div class="about-card story-card">
+          <h3 data-i18n="how_we_started">How We Started</h3>
+          <p data-i18n="about_p1">BritChoice Kenya was founded by business partners Peter and Maggie to solve a simple problem: the lack of access to genuine, high-quality household, skincare, and supplement brands from the UK. Having experienced the reliability of UK products firsthand, they realized many families in Kenya wanted these trusted brands but struggled with shipping delays, high rates, or counterfeit worries.</p>
+          <p data-i18n="about_p2">Together, Peter and Maggie personally select and import the inventory from authorized distributors and major retailers in the UK. By warehousing stock locally in Nairobi, they ensure every single item is 100% authentic and immediately ready for pick-up or delivery.</p>
+        </div>
+
+        <div class="about-card values-card">
+          <h3 data-i18n="our_values">Our Core Values</h3>
+          <ul class="values-list">
+            <li>
+              <i data-lucide="shield-check"></i>
+              <div>
+                <strong data-i18n="value_title1">Absolute Authenticity</strong>
+                <p data-i18n="value_desc1">We never compromise on product quality. Every item is verified and imported directly.</p>
+              </div>
+            </li>
+            <li>
+              <i data-lucide="zap"></i>
+              <div>
+                <strong data-i18n="value_title2">Convenience</strong>
+                <p data-i18n="value_desc2">Check real-time stock online, purchase in seconds, and pick up your items at your convenience.</p>
+              </div>
+            </li>
+            <li>
+              <i data-lucide="send"></i>
+              <div>
+                <strong data-i18n="value_title3">Customer Commitment</strong>
+                <p data-i18n="value_desc3">We connect with you directly on WhatsApp to coordinate fulfillment, ensuring a personalized service.</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Product Detail Modal -->
+  <div id="product-modal" class="modal-backdrop hidden">
+    <div class="modal-content">
+      <button id="modal-close-btn" class="modal-close"><i data-lucide="x"></i></button>
+      <div class="modal-grid">
+        <div class="modal-gallery">
+          <img id="modal-product-img" src="" alt="Product Image">
+        </div>
+        <div class="modal-details">
+          <span id="modal-product-category" class="category-badge">Category</span>
+          <h2 id="modal-product-title">Product Name</h2>
+          
+          <div class="modal-spec-row">
+            <span class="spec-label">Brand:</span>
+            <span id="modal-product-brand" class="spec-value">Brand</span>
+          </div>
+          <div class="modal-spec-row">
+            <span class="spec-label">Variant:</span>
+            <span id="modal-product-variant" class="spec-value">Variant</span>
+          </div>
+          <div class="modal-spec-row">
+            <span class="spec-label">Size / Qty:</span>
+            <span id="modal-product-size" class="spec-value">Size</span>
+          </div>
+          <div class="modal-spec-row">
+            <span class="spec-label">SKU:</span>
+            <span id="modal-product-sku" class="spec-value">SKU</span>
+          </div>
+          <div class="modal-spec-row">
+            <span class="spec-label">Availability:</span>
+            <span id="modal-product-stock" class="spec-value">In Stock</span>
+          </div>
+
+          <div class="modal-price-row">
+            <span class="price-label">Price:</span>
+            <span id="modal-product-price" class="price-val">KES 0</span>
+          </div>
+
+          <div class="modal-description">
+            <h3>Product Description</h3>
+            <p id="modal-product-desc">No description available.</p>
+          </div>
+
+          <div class="modal-actions">
+            <div id="modal-add-to-cart-container">
+              <button id="modal-add-btn" class="btn-primary w-full">
+                <i data-lucide="shopping-cart"></i> Add to Cart
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cart Drawer -->
+  <div id="cart-drawer" class="cart-drawer-backdrop hidden">
+    <div class="cart-drawer-content">
+      <div class="cart-drawer-header">
+        <h2>Shopping Cart (<span id="cart-drawer-count">0</span>)</h2>
+        <button id="cart-close-btn" class="icon-btn" aria-label="Close Cart">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <!-- Cart Items Container -->
+      <div id="cart-items-list" class="cart-items-list">
+        <!-- Dynamic Items -->
+      </div>
+
+      <!-- Empty Cart State -->
+      <div id="cart-empty-state" class="cart-empty-state">
+        <i data-lucide="shopping-cart" class="empty-cart-icon"></i>
+        <p>Your shopping cart is empty.</p>
+        <button id="cart-continue-btn" class="btn-secondary">Start Shopping</button>
+      </div>
+
+      <!-- Cart Footer -->
+      <div id="cart-footer" class="cart-footer hidden">
+        <div class="cart-summary">
+          <div class="summary-row">
+            <span>Subtotal</span>
+            <span id="cart-subtotal">KES 0</span>
+          </div>
+          <p class="summary-note">Delivery charges will be calculated on check-out via WhatsApp.</p>
+        </div>
+        
+        <div class="whatsapp-checkout-block">
+          <!-- Pickup vs Delivery Toggle buttons -->
+          <div class="delivery-toggle-container">
+            <button type="button" class="delivery-tab-btn active" id="delivery-tab-pickup">
+              <i data-lucide="package"></i> Self Pick-up
+            </button>
+            <button type="button" class="delivery-tab-btn" id="delivery-tab-courier">
+              <i data-lucide="truck"></i> Request Delivery
+            </button>
+          </div>
+
+          <!-- Collection Details Sub-panes -->
+          <div class="delivery-details-pane" id="pane-pickup">
+            <div class="pickup-location-selector-group">
+              <label for="pickup-location-select">Select Pick-up Point</label>
+              <select id="pickup-location-select" class="premium-select">
+                <option value="Kahawa Sukari">Kahawa Sukari (Self Pick-up)</option>
+                <option value="CBD Nairobi">World Business Centre, CBD Nairobi (Phan Salon)</option>
+              </select>
+            </div>
+            <div class="pickup-info-card">
+              <i data-lucide="info" class="card-info-icon"></i>
+              <div>
+                <h4 id="pickup-location-title">Kahawa Sukari (Self Pick-up)</h4>
+                <p id="pickup-location-desc">Available for direct self-collection. We will verify availability and send exact coordinates via WhatsApp chat.</p>
+                <span class="pickup-hours">Hours: Mon - Sat (9:00 AM - 6:00 PM)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="delivery-details-pane hidden" id="pane-courier">
+            <div class="location-detect-wrapper">
+              <button type="button" id="detect-location-btn" class="btn-location-detect">
+                <i data-lucide="map-pin"></i> <span data-i18n="use_current_location">Use My Current Location</span>
+              </button>
+              <div id="location-status" class="location-status hidden"></div>
+            </div>
+            
+            <div id="delivery-map-container" class="delivery-map-container hidden">
+              <div id="delivery-map"></div>
+              <span class="map-hint" data-i18n="map_hint">Drag the marker to pinpoint your exact delivery spot</span>
+            </div>
+
+            <div class="phone-input-group">
+              <label for="order-delivery-address"><span data-i18n="delivery_address_label">Delivery Address / Landmark</span> <span class="required">*</span></label>
+              <textarea id="order-delivery-address" rows="2" data-i18n-placeholder="delivery_address_placeholder" placeholder="e.g. Apartment/Office Room, Street/Building, Area in Nairobi"></textarea>
+            </div>
+            <div class="pickup-info-card warning-card">
+              <i data-lucide="alert-circle" class="card-info-icon"></i>
+              <div>
+                <h4 data-i18n="courier_charges_title">Courier Charges Apply</h4>
+                <p data-i18n="courier_charges_desc">We coordinate boda-boda or courier riders to your address. Payment for delivery is paid directly to the rider upon arrival.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- User Information fields if not logged in -->
+          <div id="cart-guest-fields">
+            <div class="phone-input-group">
+              <label for="order-name">Your Name <span class="required">*</span></label>
+              <input type="text" id="order-name" placeholder="Enter your name">
+            </div>
+            <div class="phone-input-group">
+              <label for="order-phone">WhatsApp Number <span class="required">*</span></label>
+              <input type="tel" id="order-phone" placeholder="e.g. 0722247829">
+            </div>
+          </div>
+          
+          <!-- User Profile prefilled indicator if logged in -->
+          <div id="cart-profile-badge" class="cart-profile-badge hidden">
+            <div class="profile-badge-left">
+              <i data-lucide="check-circle" class="success-icon"></i>
+              <div>
+                <span class="badge-title">Ordering as <strong id="cart-profile-name-span">Angela</strong></span>
+                <span class="badge-desc" id="cart-profile-phone-span">0722247829</span>
+              </div>
+            </div>
+            <button type="button" id="cart-change-profile-btn" class="text-link-btn">Change</button>
+          </div>
+
+          <button id="whatsapp-checkout-btn" class="btn-whatsapp">
+            <i data-lucide="send"></i> Place Order via WhatsApp
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trust & Testimonials Section -->
+  <section class="trust-testimonials-section">
+    <div class="section-container">
+      <div class="about-snippet-block">
+        <span class="trust-badge"><i data-lucide="shield-check"></i> Authentic & Sourced in the UK</span>
+        <h2>About BritChoice Kenya</h2>
+        <p>BritChoice Kenya is a premier shopping hub dedicated to bringing genuine, high-quality British products to families across Kenya. Every single product in our catalog is hand-selected and imported directly from established UK retailers. We store our inventory locally in Nairobi, meaning you get authentic products instantly without shipping delays, hidden fees, or custom hassles.</p>
+        <div class="trust-icons-grid">
+          <div class="trust-icon-item">
+            <i data-lucide="award"></i>
+            <span>100% Genuine</span>
+          </div>
+          <div class="trust-icon-item">
+            <i data-lucide="zap"></i>
+            <span>Local Stock</span>
+          </div>
+          <div class="trust-icon-item">
+            <i data-lucide="map-pin"></i>
+            <span>Convenient Pick-up</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="testimonials-block">
+        <h2>What Our Customers Say</h2>
+        <div class="testimonials-grid">
+          <div class="testimonial-card">
+            <div class="stars">
+              <i data-lucide="star" class="star-filled"></i>
+              <i data-lucide="star" class="star-filled"></i>
+              <i data-lucide="star" class="star-filled"></i>
+              <i data-lucide="star" class="star-filled"></i>
+              <i data-lucide="star" class="star-filled"></i>
+            </div>
+            <p>"Authentic UK products! I was so excited to find Ariel laundry gel and The Pink Stuff paste here. Sourced in the UK, picked up in CBD the same day!"</p>
+            <div class="customer-info">
+              <div class="cust-avatar">AN</div>
+              <div>
+                <h4>Angela N.</h4>
+                <span>Nairobi CBD</span>
+              </div>
+            </div>
+          </div>
+          <div class="testimonial-card">
+            <div class="stars">
+              <i data-lucide="star" class="star-filled"></i>
+              <i data-lucide="star" class="star-filled"></i>
+              <i data-lucide="star" class="star-filled"></i>
+              <i data-lucide="star" class="star-filled"></i>
+              <i data-lucide="star" class="star-filled"></i>
+            </div>
+            <p>"The supplements are exactly the same brands I buy when I'm in London. Seamless checkout via WhatsApp and convenient pick-up at Kahawa Sukari."</p>
+            <div class="customer-info">
+              <div class="cust-avatar">JK</div>
+              <div>
+                <h4>Joseph K.</h4>
+                <span>Kahawa Sukari</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="app-footer-page">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <h2>BritChoice Kenya</h2>
+        <p>Importing premium quality British products for our customers in Kenya.</p>
+        <div class="footer-links">
+          <button id="footer-about-btn" class="footer-link-btn">Our Story</button>
+          <span class="divider">•</span>
+          <button id="footer-contact-btn" class="footer-link-btn">Pick-up & Contact</button>
+          <span class="divider">•</span>
+          <button id="footer-refund-btn" class="footer-link-btn">Returns Policy</button>
+          <span class="divider">•</span>
+          <button id="footer-terms-btn" class="footer-link-btn">Terms of Service</button>
+          <span class="divider">•</span>
+          <button id="footer-privacy-btn" class="footer-link-btn">Privacy & Cookies</button>
+          <span id="footer-install-divider" class="divider hidden">•</span>
+          <button id="footer-install-btn" class="footer-link-btn install-btn-pwa hidden">
+            <i data-lucide="download" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 2px;"></i> Install App
+          </button>
+        </div>
+      </div>
+      <div class="footer-info">
+        <p>&copy; 2026 BritChoice Kenya. All rights reserved.</p>
+        <p>Designed & Crafted by Angela Wangui Wachira</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Info Modal (About / Contact / Policies) -->
+  <div id="info-modal" class="modal-backdrop hidden">
+    <div class="modal-content info-modal-content">
+      <button id="info-modal-close-btn" class="modal-close"><i data-lucide="x"></i></button>
+      <div class="info-tabs-sidebar">
+        <button class="info-tab-btn active" data-tab="about-tab"><i data-lucide="info"></i> Our Story</button>
+        <button class="info-tab-btn" data-tab="contact-tab"><i data-lucide="map-pin"></i> Pick-up & Contact</button>
+        <button class="info-tab-btn" data-tab="refund-tab"><i data-lucide="rotate-ccw"></i> Returns Policy</button>
+        <button class="info-tab-btn" data-tab="terms-tab"><i data-lucide="file-text"></i> Terms of Service</button>
+        <button class="info-tab-btn" data-tab="privacy-tab"><i data-lucide="shield-check"></i> Privacy & Cookies</button>
+      </div>
+      <div class="info-tab-body">
+        <!-- Our Story Tab -->
+        <div id="about-tab" class="tab-pane">
+          <h2>Our Story</h2>
+          <p class="lead-text">Peter & Maggie's curated imports, direct from the UK to Nairobi.</p>
+          <p>BritChoice Kenya was founded by business partners Peter and Maggie to solve a simple problem: the lack of access to genuine, high-quality household, skincare, and supplement brands from the UK. Having experienced the reliability of UK products firsthand, they realized many families in Kenya wanted these trusted brands but struggled with shipping delays, high rates, or counterfeit worries.</p>
+          <p>Together, Peter and Maggie personally select and import the inventory from authorized distributors and major retailers in the UK. By warehousing stock locally in Nairobi, they ensure every single item is 100% authentic and immediately ready for pick-up or delivery.</p>
+          
+          <h3>Our Core Values</h3>
+          <ul class="values-list">
+            <li><strong>Absolute Authenticity:</strong> We never compromise on product quality. Every item is verified and imported directly.</li>
+            <li><strong>Convenience:</strong> Check real-time stock online, purchase in seconds, and pick up your items at your convenience.</li>
+            <li><strong>Customer Commitment:</strong> We connect with you directly on WhatsApp to coordinate fulfillment, ensuring a personalized service.</li>
+          </ul>
+        </div>
+
+        <!-- Contact Tab -->
+        <div id="contact-tab" class="tab-pane hidden">
+          <h2>Pick-up & Contact</h2>
+          <p class="lead-text">Get in touch or collect your orders from our official locations.</p>
+          
+          <div class="contact-details-grid">
+            <div class="contact-card">
+              <i data-lucide="map-pin" class="contact-icon"></i>
+              <h3>Self Pick-up Locations</h3>
+              <div class="location-item">
+                <strong>📍 Kahawa Sukari (Main Store)</strong>
+                <p>Convenient self pick-up at Kahawa Sukari estate.</p>
+              </div>
+              <div class="location-item" style="margin-top: 10px;">
+                <strong>📍 Nairobi CBD Hub</strong>
+                <p>Phan Salon, World Business Centre, CBD Nairobi.</p>
+              </div>
+            </div>
+            
+            <div class="contact-card">
+              <i data-lucide="phone-call" class="contact-icon"></i>
+              <h3>Direct Lines</h3>
+              <p><strong>Phone & WhatsApp:</strong> <a href="tel:+254722247829">+254 722 247 829</a></p>
+              <p><strong>Email Address:</strong> <a href="mailto:hello@britchoicekenya.com">hello@britchoicekenya.com</a></p>
+              <p><strong>Fulfillment Hours:</strong> Mon - Sat: 9:00 AM - 6:00 PM</p>
+            </div>
+          </div>
+
+          <div class="map-card-mockup">
+            <div class="map-info">
+              <i data-lucide="navigation"></i>
+              <div>
+                <h4>Need Directions?</h4>
+                <p>Tap below to view our pickup points on the map.</p>
+              </div>
+            </div>
+            <div class="map-actions">
+              <a href="https://maps.google.com/?q=Kahawa+Sukari+Nairobi" target="_blank" class="btn-primary"><i data-lucide="external-link"></i> Kahawa Sukari</a>
+              <a href="https://maps.google.com/?q=World+Business+Centre+Nairobi" target="_blank" class="btn-secondary"><i data-lucide="external-link"></i> CBD Hub</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Returns & Refunds Policy Tab -->
+        <div id="refund-tab" class="tab-pane hidden">
+          <h2>Returns & Refunds Policy</h2>
+          <p class="lead-text">Simple and fair terms for exchanges and product returns.</p>
+          <p>At BritChoice Kenya, we take pride in importing 100% genuine UK products. Because we import household, hygiene, wellness, and personal care products directly from the United Kingdom, our policies are designed to protect quality and safety standards.</p>
+          
+          <h3>1. Inspection Upon Pick-up</h3>
+          <p>We highly encourage all customers choosing **Self Pick-up** at Kahawa Sukari or CBD Phan Salon to inspect their items carefully at the point of collection to verify the seals, packaging, and quantity.</p>
+
+          <h3>2. 48-Hour Return Window</h3>
+          <p>We offer a **48-hour return window** after collection for unopened and fully sealed products in their original packaging under the following conditions:</p>
+          <ul class="values-list">
+            <li>The product has a manufacturer defect discovered after collection.</li>
+            <li>We accidentally fulfilled the incorrect brand, variant, or size.</li>
+          </ul>
+
+          <h3>3. Exclusions from Returns</h3>
+          <p>Due to health, hygiene, and imported shelf-life standards, we **cannot** accept returns or issue refunds for:</p>
+          <ul class="values-list">
+            <li>Any product that has been opened, unsealed, or used.</li>
+            <li>Skincare or cosmetic items with broken seals.</li>
+            <li>Wellness supplements or vitamin packs that have been unsealed.</li>
+            <li>Products damaged due to customer misuse or improper storage after pick-up.</li>
+          </ul>
+
+          <h3>4. Refund Method</h3>
+          <p>Approved returns can be **exchanged** for alternative products of equal value, or fully **refunded** via M-Pesa within 24 hours of item return verification.</p>
+        </div>
+
+        <!-- Terms of Service Tab -->
+        <div id="terms-tab" class="tab-pane hidden">
+          <h2>Terms of Service</h2>
+          <p class="lead-text">Operational guidelines and customer agreements.</p>
+          <p>By browsing, accessing, or placing orders on the BritChoice Kenya website, you agree to comply with and be bound by the following Terms of Service. Please read them carefully.</p>
+
+          <h3>1. Pricing and Catalog Inventory</h3>
+          <p>All prices listed on our website are in Kenyan Shillings (KES) and represent retail values. While we employ real-time inventory counts linked to our backend system, all inventory levels are subject to final validation at the time of checkout. Stock deductions are registered when checkouts are submitted.</p>
+
+          <h3>2. WhatsApp Order Requests</h3>
+          <p>Submitting a checkout order initiates a reservation request via WhatsApp. Final purchase contracts and fulfillment agreements are completed and concluded through direct WhatsApp chat confirmation with Peter & Maggie.</p>
+
+          <h3>3. Courier Deliveries & Fees</h3>
+          <p>For customers selecting the courier delivery option, shipping charges are calculated separately. We coordinate local delivery via boda-boda riders or third-party courier services. Payment for delivery is paid directly to the courier agent upon arrival.</p>
+
+          <h3>4. Product Reselling Limitation</h3>
+          <p>BritChoice Kenya acts as an independent reseller of imported British goods. We represent that all products are 100% genuine and sourced from established UK retailers. However, we are not the direct manufacturer of these items and are not liable for changes in product formulas or manufacturer defaults.</p>
+        </div>
+
+        <!-- Privacy & Cookies Tab -->
+        <div id="privacy-tab" class="tab-pane hidden">
+          <h2>Privacy & Cookie Policy</h2>
+          <p class="lead-text">How we respect and safeguard your personal data.</p>
+          <p>BritChoice Kenya is committed to ensuring that your privacy is protected. This policy outlines how we collect, store, and utilize your personal data.</p>
+
+          <h3>1. What We Store Locally (LocalStorage)</h3>
+          <p>Our website utilizes local browser storage (LocalStorage) instead of cookies to provide you with core shopping functions without tracking your web activity:</p>
+          <ul class="values-list">
+            <li><strong>Shopping Cart (`britchoice_cart`):</strong> Stores your added items so they persist when you reload the page.</li>
+            <li><strong>Guest Profile (`britchoice_profile`):</strong> Saves your Name, Phone, and Email locally so you don't have to re-type them on future checkouts.</li>
+            <li><strong>Order History (`britchoice_orders`):</strong> Logs the past orders you placed via WhatsApp in this browser for your personal reference.</li>
+          </ul>
+
+          <h3>2. Zero Server Tracking Databases</h3>
+          <p>We **do not** maintain central customer registration databases or passwords on our servers. Your contact details are stored entirely inside your own browser and are only shared with us when you click the WhatsApp link to submit an order.</p>
+
+          <h3>3. Third-Party Sharing</h3>
+          <p>We do not sell, distribute, or lease your personal information to third parties. Your details are used strictly to coordinate order collection and delivery.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile / Sign In Modal -->
+  <div id="profile-modal" class="modal-backdrop hidden">
+    <div class="modal-content profile-modal-content">
+      <button id="profile-modal-close-btn" class="modal-close"><i data-lucide="x"></i></button>
+      
+      <!-- State A: Not Signed In -->
+      <div id="profile-state-logged-out" class="profile-auth-pane">
+        <div class="auth-header">
+          <div class="auth-icon-wrap"><i data-lucide="user-plus"></i></div>
+          <h2>Create Guest Profile</h2>
+          <p>Save your contact details locally to enjoy one-click checkouts and track your order history directly in this browser.</p>
+        </div>
+        <form id="profile-auth-form" class="profile-form">
+          <div class="input-field-group">
+            <label for="auth-name">Your Full Name <span class="required">*</span></label>
+            <div class="input-wrapper">
+              <i data-lucide="user" class="field-icon"></i>
+              <input type="text" id="auth-name" required placeholder="e.g. Angela Wachira">
+            </div>
+          </div>
+          
+          <div class="input-field-group">
+            <label for="auth-phone">WhatsApp Number <span class="required">*</span></label>
+            <div class="input-wrapper">
+              <i data-lucide="phone" class="field-icon"></i>
+              <input type="tel" id="auth-phone" required placeholder="e.g. 0722247829">
+            </div>
+            <span class="field-hint">Used to send your orders via WhatsApp.</span>
+          </div>
+
+          <div class="input-field-group">
+            <label for="auth-email">Email Address (Optional)</label>
+            <div class="input-wrapper">
+              <i data-lucide="mail" class="field-icon"></i>
+              <input type="email" id="auth-email" placeholder="e.g. name@example.com">
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary w-full auth-submit-btn">
+             <i data-lucide="check"></i> Save Details & Sign In
+          </button>
+        </form>
+      </div>
+
+      <!-- State B: Signed In Dashboard -->
+      <div id="profile-state-logged-in" class="profile-dashboard-pane hidden">
+        <div class="dashboard-header">
+          <div class="user-badge-large" id="profile-avatar-letters">AW</div>
+          <div>
+            <h2 id="profile-dashboard-name">Angela Wachira</h2>
+            <span class="member-since-pill"><i data-lucide="shield"></i> Verified Client</span>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <!-- Customer Details Column -->
+          <div class="dashboard-details-col">
+            <h3>My Profile Details</h3>
+            <div class="detail-display-row">
+              <span class="detail-label">WhatsApp:</span>
+              <span class="detail-val" id="profile-display-phone">0722 247 829</span>
+            </div>
+            <div class="detail-display-row">
+              <span class="detail-label">Email:</span>
+              <span class="detail-val" id="profile-display-email">angela@example.com</span>
+            </div>
+            <div class="detail-actions">
+              <button id="profile-edit-btn" class="btn-secondary"><i data-lucide="edit-3"></i> Edit Details</button>
+              <button id="profile-signout-btn" class="btn-signout"><i data-lucide="log-out"></i> Log Out</button>
+            </div>
+          </div>
+
+          <!-- Local Order History Column -->
+          <div class="dashboard-orders-col">
+            <h3>My Order History <span class="history-count" id="order-history-count">(0)</span></h3>
+            <div class="orders-history-list" id="orders-history-container">
+              <!-- Dynamic Order History rows -->
+              <div class="no-history-state">
+                <i data-lucide="history"></i>
+                <p>You haven't placed any orders yet. Add items to your cart and place an order to see it here!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cookie Consent Banner -->
+  <div id="cookie-banner" class="cookie-banner-wrap hidden">
+    <div class="cookie-banner-content">
+      <div class="cookie-icon-box"><i data-lucide="cookie"></i></div>
+      <div class="cookie-text-box">
+        <h3>Cookie & Local Storage Consent</h3>
+        <p>We use local browser storage to persist your shopping cart, guest profile, and order logs. No personal data is tracked or shared. <button id="cookie-banner-read-more" class="cookie-link">Read our Policy</button>.</p>
+      </div>
+      <div class="cookie-actions">
+        <button id="cookie-accept-btn" class="btn-primary">Accept & Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Navigation Drawer -->
+  <div id="mobile-menu-drawer" class="mobile-drawer-backdrop hidden">
+    <div class="mobile-drawer-content">
+      <div class="mobile-drawer-header">
+        <div class="logo-area" style="text-align: left;">
+          <div class="logo-icon">BC</div>
+          <div class="logo-text">
+            <h2 style="font-size: 18px; margin-bottom: 0;">BritChoice</h2>
+            <span style="font-size: 10px; color: var(--accent); text-transform: uppercase; font-weight: bold; letter-spacing: 1.5px; display: block; margin-top: -3px;">Kenya</span>
+          </div>
+        </div>
+        <button id="mobile-menu-close-btn" class="icon-btn" aria-label="Close Menu">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="mobile-drawer-body">
+        <ul class="mobile-nav-links">
+          <li><button class="mobile-nav-link-btn" id="mob-nav-catalog"><i data-lucide="layout-grid"></i> Catalog</button></li>
+          <li><button class="mobile-nav-link-btn" id="mob-nav-about"><i data-lucide="book-open"></i> Our Story</button></li>
+          <li><button class="mobile-nav-link-btn" id="mob-nav-contact"><i data-lucide="map-pin"></i> Pick-up & Contact</button></li>
+          <li><button class="mobile-nav-link-btn" id="mob-nav-refund"><i data-lucide="rotate-ccw"></i> Returns Policy</button></li>
+          <li><button class="mobile-nav-link-btn" id="mob-nav-terms"><i data-lucide="file-text"></i> Terms of Service</button></li>
+          <li><button class="mobile-nav-link-btn" id="mob-nav-privacy"><i data-lucide="shield-check"></i> Privacy & Cookies</button></li>
+        </ul>
+        
+        <!-- PWA Install App block in mobile menu -->
+        <div id="mobile-install-app-block" class="mobile-install-card hidden">
+          <i data-lucide="download" class="install-card-icon"></i>
+          <div>
+            <h3>Install BritChoice App</h3>
+            <p>Save this app to your home screen for rapid full-screen browsing and instant checkout access.</p>
+            <button id="mobile-install-btn" class="btn-primary w-full" style="margin-top: 10px; height: 38px;"><i data-lucide="plus-circle"></i> Install Now</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({
+        pageLanguage: 'en',
+        includedLanguages: 'en,fr,de,sw,tr,sv,it,ja,zh-CN,ko,es,pt',
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+        autoDisplay: false
+      }, 'google_translate_element');
+    }
+  </script>
+  <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="/static/icons.js?v=2"></script>
+  <script src="/static/app.js?v=2"></script>
+</body>
+</html>
