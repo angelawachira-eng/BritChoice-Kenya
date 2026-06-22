@@ -1986,6 +1986,8 @@ button {
   color: var(--text-main);
   font-style: italic;
   flex: 1;
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 .customer-info {
   display: flex;
@@ -3671,6 +3673,101 @@ body {
 
   .mobile-bottom-nav {
     display: flex;
+  }
+
+  /* Prevent iOS input focus zoom */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  /* Hide vertical category list block since horizontal swiper is active */
+  .sidebar .sidebar-block:first-child {
+    display: none !important;
+  }
+
+  /* Compress Hero Banner on mobile to reduce scrolling */
+  .hero-section {
+    padding: 24px 16px !important;
+  }
+  .hero-container h2 {
+    font-size: 20px !important;
+    line-height: 1.3 !important;
+  }
+  .hero-container p {
+    display: none !important; /* Hide long description text */
+  }
+}
+
+/* 7. Compact 2-Column Product Grid on Mobile Phones */
+@media (max-width: 576px) {
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+  
+  .product-card {
+    padding: 10px !important;
+    border-radius: var(--radius-md) !important;
+  }
+  
+  .card-image-wrap {
+    margin-bottom: 8px !important;
+  }
+  
+  .card-brand {
+    font-size: 9px !important;
+    margin-bottom: 2px !important;
+  }
+  
+  .card-title {
+    font-size: 12px !important;
+    height: 32px !important; /* Fixed height for 2 lines */
+    line-height: 1.3 !important;
+    margin-bottom: 6px !important;
+  }
+  
+  .card-spec-row {
+    display: none !important; /* Hide pills in grid to save card height */
+  }
+  
+  .card-stock-status {
+    margin-bottom: 6px !important;
+    font-size: 10px !important;
+  }
+  
+  .card-price-row {
+    margin-top: auto; /* Push price row to bottom of card */
+  }
+  
+  .card-price {
+    font-size: 13px !important;
+    font-weight: 700 !important;
+  }
+  
+  /* Make add-to-cart buttons compact */
+  .btn-icon-only {
+    width: 32px !important;
+    height: 32px !important;
+  }
+  
+  .btn-icon-only svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+  
+  .quantity-control {
+    height: 32px !important;
+    padding: 0 4px !important;
+  }
+  
+  .quantity-control .qty-btn {
+    width: 24px !important;
+    height: 24px !important;
+  }
+  
+  .quantity-control .qty-number {
+    font-size: 12px !important;
+    min-width: 16px !important;
   }
 }
 
