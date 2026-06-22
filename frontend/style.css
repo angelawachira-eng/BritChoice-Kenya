@@ -2819,33 +2819,35 @@ button {
   transform: translateX(-4px);
 }
 
-.about-hero {
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.88), rgba(30, 58, 138, 0.82)), url('/static/images/hero_banner.png');
-  background-size: cover;
-  background-position: center;
-  padding: 80px 48px;
-  border-radius: var(--radius-2xl);
-  color: var(--text-white);
-  margin-bottom: 48px;
-  box-shadow: var(--shadow-lg);
+.about-title-block {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto 40px auto;
+  padding: 32px 16px;
 }
 
-.about-hero-text {
-  max-width: 700px;
-}
-
-.about-hero-text h2 {
-  font-size: 44px;
+.about-title-block h2 {
+  font-size: 38px;
   font-weight: 800;
-  margin-bottom: 16px;
+  color: var(--primary-dark);
+  margin-bottom: 12px;
   letter-spacing: -1px;
 }
 
-.about-hero-text .lead-text {
+.about-title-block .lead-text {
   font-size: 18px;
-  opacity: 0.9;
-  font-weight: 400;
-  line-height: 1.6;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.about-intro-desc {
+  font-size: 15px;
+  color: var(--text-muted);
+  line-height: 1.65;
+  text-align: center;
+  margin: 0 auto;
 }
 
 .about-content-grid {
@@ -2983,12 +2985,6 @@ button {
 @media (max-width: 992px) {
   .about-content-grid {
     grid-template-columns: 1fr;
-  }
-  .about-hero {
-    padding: 60px 32px;
-  }
-  .about-hero-text h2 {
-    font-size: 32px;
   }
 }
 
@@ -3825,6 +3821,87 @@ body {
   .quantity-control .qty-number {
     font-size: 12px !important;
     min-width: 16px !important;
+  }
+
+  /* Trust Icons Grid mobile overrides */
+  .trust-icons-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  
+  .trust-icon-item {
+    flex-direction: row !important;
+    align-items: center !important;
+    text-align: left !important;
+    padding: 12px 16px !important;
+    gap: 12px !important;
+  }
+
+  .trust-icon-item i {
+    width: 20px !important;
+    height: 20px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .trust-icon-item span {
+    font-size: 13px !important;
+  }
+
+  /* Testimonial card mobile compression */
+  .testimonial-card {
+    padding: 16px !important;
+    gap: 10px !important;
+  }
+
+  .testimonial-card p {
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+    word-wrap: normal !important;
+    hyphens: none !important;
+  }
+
+  .testimonials-block h2 {
+    font-size: 24px !important;
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+    word-wrap: normal !important;
+    hyphens: none !important;
+  }
+
+  /* Search Input wrapping/word break overrides */
+  .search-wrapper input {
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+    word-wrap: normal !important;
+  }
+
+  /* About Page Mobile Refinements */
+  .about-page-view {
+    padding: 24px 16px 60px 16px !important;
+  }
+
+  .about-card {
+    padding: 24px 20px !important;
+  }
+
+  .about-title-block {
+    padding: 24px 12px !important;
+    margin-bottom: 24px !important;
+  }
+
+  .about-title-block h2 {
+    font-size: 28px !important;
+  }
+
+  .about-title-block .lead-text {
+    font-size: 16px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .about-intro-desc {
+    font-size: 14px !important;
   }
 }
 

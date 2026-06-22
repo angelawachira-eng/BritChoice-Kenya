@@ -1,4 +1,4 @@
-const CACHE_NAME = 'britchoice-cache-v11';
+const CACHE_NAME = 'britchoice-cache-v12';
 
 // Install — skip waiting so new SW takes over immediately
 self.addEventListener('install', (e) => {
