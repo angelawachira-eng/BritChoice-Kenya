@@ -1958,6 +1958,7 @@ button {
 /* === Each Card — fixed width = 100% of carousel === */
 .testimonial-card {
   min-width: 100%;
+  flex-shrink: 0;
   background-color: var(--bg-app);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
@@ -3851,6 +3852,9 @@ body {
   .testimonial-card {
     padding: 16px !important;
     gap: 10px !important;
+    min-width: 100% !important;
+    width: 100% !important;
+    flex-shrink: 0 !important;
   }
 
   .testimonial-card p {
