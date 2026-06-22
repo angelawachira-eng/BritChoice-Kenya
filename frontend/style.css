@@ -1956,60 +1956,49 @@ button {
   color: var(--text-muted);
 }
 
-/* === Prev / Next Arrows === */
+/* === Prev / Next Arrows — pill style, sit below card === */
 .carousel-btn {
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 36px;
+  bottom: 16px;
+  width: auto;
   height: 36px;
-  border-radius: var(--radius-full);
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  box-shadow: 0 2px 8px rgba(15,23,42,0.1);
+  padding: 0 14px;
+  border-radius: 999px;
+  background: var(--primary-dark);
+  border: none;
+  box-shadow: 0 3px 10px rgba(15,23,42,0.18);
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 6px;
   cursor: pointer;
   z-index: 2;
   transition: all var(--transition-fast);
-  color: var(--primary-dark);
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  top: auto;
+  transform: none;
 }
 .carousel-btn:hover {
-  background: var(--primary-dark);
-  color: white;
-  border-color: var(--primary-dark);
-  transform: translateY(-50%) scale(1.08);
+  background: var(--primary);
+  box-shadow: 0 5px 16px rgba(15,23,42,0.25);
+  transform: translateY(-1px);
 }
 .carousel-btn i {
-  width: 18px;
-  height: 18px;
+  width: 15px;
+  height: 15px;
 }
-.carousel-prev { left: 8px; }
-.carousel-next { right: 8px; }
+.carousel-prev { left: 16px; }
+.carousel-next { right: 16px; }
 
-/* === Dot Indicators === */
-.carousel-dots {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 14px;
+/* Push card content up so arrows don't overlap text */
+.testimonial-card {
+  padding-bottom: 64px;
 }
-.carousel-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: var(--radius-full);
-  background: var(--border-dark);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: none;
-  padding: 0;
-}
-.carousel-dot.active {
-  background: var(--primary-light);
-  width: 24px;
-  border-radius: 4px;
-}
+
+/* Hide dots (replaced by arrows) */
+.carousel-dots { display: none; }
 
 
 /* Anonymous avatar style */
