@@ -1771,7 +1771,7 @@ function initTestimonialCarousel() {
   }
 
   function startAuto() {
-    autoTimer = setInterval(() => goTo(current + 1), 4000);
+    autoTimer = setInterval(() => goTo(current + 1), 7000);
   }
 
   function stopAuto() {

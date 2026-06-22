@@ -1890,7 +1890,7 @@ button {
 /* === Sliding Track === */
 .testimonial-track {
   display: flex;
-  transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: transform 0.8s cubic-bezier(0.45, 0.05, 0.55, 0.95);
   will-change: transform;
 }
 
@@ -2011,6 +2011,16 @@ button {
   border-radius: 4px;
 }
 
+
+/* Anonymous avatar style */
+.anon-avatar {
+  background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%) !important;
+}
+.anon-avatar i {
+  width: 18px;
+  height: 18px;
+  color: white;
+}
 
 /* Footer Link Toggles */
 .footer-links {
