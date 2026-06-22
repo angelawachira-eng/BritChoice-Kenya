@@ -1175,6 +1175,47 @@ button {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  /* Prevent iOS momentum scroll from bleeding */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Cart Footer Panel */
+.cart-footer {
+  padding: 24px;
+  border-top: 1px solid var(--border-light);
+  background-color: var(--bg-app);
+  /* Desktop: footer is static, list scrolls above it */
+  overflow-y: visible;
+  flex-shrink: 0;
+}
+
+/* ── MOBILE FIX ──────────────────────────────────────────
+   The whole drawer becomes one scroll column.
+   Bottom is raised above the floating nav bar so nothing
+   is hidden behind it.
+──────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .cart-drawer-content {
+    /* Stop the drawer above the bottom nav */
+    bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+    /* Turn the whole panel into one scrollable column */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    /* Remove flex so items + footer flow naturally */
+    display: block;
+  }
+
+  .cart-items-list {
+    overflow-y: visible;
+    flex: none;
+    padding-bottom: 8px;
+  }
+
+  .cart-footer {
+    overflow-y: visible;
+    /* Extra breathing room at the very bottom */
+    padding-bottom: 32px;
+  }
 }
 
 .cart-item {
@@ -1278,29 +1319,6 @@ button {
   color: var(--text-muted);
 }
 
-/* Cart Footer Panel */
-.cart-footer {
-  padding: 24px;
-  border-top: 1px solid var(--border-light);
-  background-color: var(--bg-app);
-  overflow-y: auto;
-  max-height: 60vh; /* allows scrolling on small screens */
-}
-
-@media (max-width: 768px) {
-  .cart-footer {
-    max-height: none;
-    overflow-y: visible;
-  }
-  /* On mobile the entire cart drawer scrolls as a unit */
-  .cart-drawer-content {
-    overflow-y: auto;
-  }
-  .cart-items-list {
-    overflow-y: visible;
-    flex: none;
-  }
-}
 
 .cart-summary {
   margin-bottom: 20px;
