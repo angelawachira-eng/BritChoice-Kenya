@@ -1189,32 +1189,40 @@ button {
   flex-shrink: 0;
 }
 
-/* ── MOBILE FIX ──────────────────────────────────────────
-   The whole drawer becomes one scroll column.
-   Bottom is raised above the floating nav bar so nothing
-   is hidden behind it.
+/* ── MOBILE CART SCROLL FIX ──────────────────────────────
+   Strategy:
+   - Drawer stops ABOVE the bottom nav (bottom: 64px)
+   - Whole drawer = one scrollable block
+   - Header uses sticky so it stays visible when scrolling
 ──────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .cart-drawer-content {
-    /* Stop the drawer above the bottom nav */
     bottom: calc(64px + env(safe-area-inset-bottom, 0px));
-    /* Turn the whole panel into one scrollable column */
     overflow-y: auto;
+    overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
-    /* Remove flex so items + footer flow naturally */
-    display: block;
+    display: block; /* single scroll column */
   }
 
+  /* Header stays pinned at the top as user scrolls down */
+  .cart-drawer-header {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background-color: var(--bg-card);
+  }
+
+  /* Items list flows naturally — no independent scroll */
   .cart-items-list {
-    overflow-y: visible;
+    overflow: visible;
     flex: none;
-    padding-bottom: 8px;
+    height: auto;
   }
 
+  /* Footer flows naturally below items */
   .cart-footer {
-    overflow-y: visible;
-    /* Extra breathing room at the very bottom */
-    padding-bottom: 32px;
+    overflow: visible;
+    padding-bottom: 40px; /* breathing room at bottom */
   }
 }
 
