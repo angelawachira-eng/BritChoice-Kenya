@@ -35,7 +35,10 @@ def service_worker(request):
     file_path = os.path.join(settings.BASE_DIR, 'frontend', 'sw.js')
     if os.path.exists(file_path):
         with open(file_path, 'r', encoding='utf-8') as f:
-            return HttpResponse(f.read(), content_type='application/javascript')
+            content = f.read()
+        response = HttpResponse(content, content_type='application/javascript')
+        response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        return response
     return HttpResponse("// Service worker not found", status=404, content_type='application/javascript')
 
 urlpatterns = [
