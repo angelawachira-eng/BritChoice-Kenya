@@ -227,8 +227,31 @@
           </ul>
         </div>
       </div>
+
+      <!-- Vision & Mission Section -->
+      <div class="vision-mission-section">
+        <div class="vm-card vision-card">
+          <div class="vm-icon-wrap">
+            <i data-lucide="eye"></i>
+          </div>
+          <div class="vm-text">
+            <h3>Our Vision</h3>
+            <p>To be East Africa's most trusted destination for authentic British products &mdash; making premium UK brands accessible to every Kenyan family, without compromise on quality or price.</p>
+          </div>
+        </div>
+        <div class="vm-card mission-card">
+          <div class="vm-icon-wrap">
+            <i data-lucide="target"></i>
+          </div>
+          <div class="vm-text">
+            <h3>Our Mission</h3>
+            <p>To personally source, verify, and deliver 100% genuine UK household, skincare, and supplement products directly to Nairobi &mdash; bridging the gap between British quality and Kenyan convenience through transparency, speed, and trust.</p>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
+
 
   <!-- Product Detail Modal -->
   <div id="product-modal" class="modal-backdrop hidden">
@@ -398,6 +421,63 @@
             <button type="button" id="cart-change-profile-btn" class="text-link-btn">Change</button>
           </div>
 
+          <!-- Payment Method Selector -->
+          <div class="payment-method-section">
+            <label class="section-label"><i data-lucide="credit-card"></i> Payment Method</label>
+            <div class="payment-method-toggle">
+              <button type="button" class="payment-tab-btn active" id="pay-tab-mpesa">
+                <span class="pay-logo mpesa-logo">M</span> M-Pesa Paybill
+              </button>
+              <button type="button" class="payment-tab-btn" id="pay-tab-cod">
+                <i data-lucide="hand-coins"></i> Pay on Pick-up / Delivery
+              </button>
+            </div>
+
+            <!-- M-Pesa Paybill Details Pane -->
+            <div id="pane-mpesa" class="payment-pane">
+              <div class="mpesa-details-card">
+                <div class="mpesa-header">
+                  <span class="mpesa-badge">M-PESA</span>
+                  <span class="mpesa-tag">Paybill Payment</span>
+                </div>
+                <div class="mpesa-steps">
+                  <div class="mpesa-step">
+                    <span class="step-num">1</span>
+                    <div><strong>Go to M-Pesa</strong> → Lipa na M-Pesa → Pay Bill</div>
+                  </div>
+                  <div class="mpesa-step">
+                    <span class="step-num">2</span>
+                    <div><strong>Business No:</strong> <span class="mpesa-highlight">222111</span></div>
+                  </div>
+                  <div class="mpesa-step">
+                    <span class="step-num">3</span>
+                    <div><strong>Account No:</strong> <span class="mpesa-highlight">017000029397</span></div>
+                  </div>
+                  <div class="mpesa-step">
+                    <span class="step-num">4</span>
+                    <div><strong>Account Name:</strong> Peter Macharia</div>
+                  </div>
+                </div>
+              </div>
+              <div class="phone-input-group" style="margin-top: 12px;">
+                <label for="mpesa-code">M-Pesa Transaction Code <span class="required">*</span></label>
+                <input type="text" id="mpesa-code" placeholder="e.g. QHX7ABCDEF" autocapitalize="characters" style="text-transform: uppercase;">
+                <span class="input-hint">Enter the confirmation code from your M-Pesa SMS.</span>
+              </div>
+            </div>
+
+            <!-- Cash / COD Pane -->
+            <div id="pane-cod" class="payment-pane hidden">
+              <div class="cod-info-card">
+                <i data-lucide="info" class="card-info-icon"></i>
+                <div>
+                  <h4>Pay on Pick-up or Delivery</h4>
+                  <p>You will pay in cash when you collect your order or upon delivery by the rider. Please have the exact amount ready.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <button id="whatsapp-checkout-btn" class="btn-whatsapp">
             <i data-lucide="send"></i> Place Order via WhatsApp
           </button>
@@ -525,6 +605,22 @@
             <li><strong>Convenience:</strong> Check real-time stock online, purchase in seconds, and pick up your items at your convenience.</li>
             <li><strong>Customer Commitment:</strong> We connect with you directly on WhatsApp to coordinate fulfillment, ensuring a personalized service.</li>
           </ul>
+
+          <h3 style="margin-top: 24px;">Vision &amp; Mission</h3>
+          <div class="vm-card vision-card" style="margin-bottom: 12px;">
+            <div class="vm-icon-wrap"><i data-lucide="eye"></i></div>
+            <div class="vm-text">
+              <strong>Our Vision</strong>
+              <p style="margin:0;">To be East Africa's most trusted destination for authentic British products — making premium UK brands accessible to every Kenyan family.</p>
+            </div>
+          </div>
+          <div class="vm-card mission-card">
+            <div class="vm-icon-wrap"><i data-lucide="target"></i></div>
+            <div class="vm-text">
+              <strong>Our Mission</strong>
+              <p style="margin:0;">To personally source, verify, and deliver 100% genuine UK products directly to Nairobi — bridging British quality with Kenyan convenience through transparency and trust.</p>
+            </div>
+          </div>
         </div>
 
         <!-- Contact Tab -->
@@ -739,6 +835,7 @@
         <p>We use local browser storage to persist your shopping cart, guest profile, and order logs. No personal data is tracked or shared. <button id="cookie-banner-read-more" class="cookie-link">Read our Policy</button>.</p>
       </div>
       <div class="cookie-actions">
+        <button id="cookie-decline-btn" class="btn-secondary cookie-decline-btn">Decline</button>
         <button id="cookie-accept-btn" class="btn-primary">Accept & Close</button>
       </div>
     </div>

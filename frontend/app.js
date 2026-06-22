@@ -43,7 +43,8 @@ const state = {
   pageSize: 24,
   // Add localization & map states
   language: 'en',
-  deliveryLocation: null
+  deliveryLocation: null,
+  paymentMethod: 'mpesa'
 };
 
 // Debounce helper — prevents rapid re-renders on search input
@@ -780,6 +781,10 @@ function setupEventListeners() {
     localStorage.setItem('britchoice_cookie_accepted', 'true');
     document.getElementById('cookie-banner').classList.add('hidden');
   });
+  document.getElementById('cookie-decline-btn').addEventListener('click', () => {
+    localStorage.setItem('britchoice_cookie_accepted', 'declined');
+    document.getElementById('cookie-banner').classList.add('hidden');
+  });
   document.getElementById('cookie-banner-read-more').addEventListener('click', () => {
     openInfoModal('privacy-tab');
   });
@@ -827,6 +832,28 @@ function setupEventListeners() {
       title.textContent = 'World Business Centre, CBD Nairobi (Phan Salon)';
       desc.textContent = 'Available for pick up in town. We will coordinate transit to CBD and notify you when ready for collection.';
     }
+  });
+
+  // Payment Method Toggle (M-Pesa vs COD)
+  const payTabMpesa = document.getElementById('pay-tab-mpesa');
+  const payTabCod = document.getElementById('pay-tab-cod');
+  const paneMpesa = document.getElementById('pane-mpesa');
+  const paneCodEl = document.getElementById('pane-cod');
+
+  payTabMpesa.addEventListener('click', () => {
+    state.paymentMethod = 'mpesa';
+    payTabMpesa.classList.add('active');
+    payTabCod.classList.remove('active');
+    paneMpesa.classList.remove('hidden');
+    paneCodEl.classList.add('hidden');
+  });
+
+  payTabCod.addEventListener('click', () => {
+    state.paymentMethod = 'cod';
+    payTabCod.classList.add('active');
+    payTabMpesa.classList.remove('active');
+    paneCodEl.classList.remove('hidden');
+    paneMpesa.classList.add('hidden');
   });
 
   // Mobile Menu Drawer Toggles
@@ -1434,6 +1461,21 @@ async function checkoutWhatsApp() {
     }
   }
 
+  // Read payment method from state
+  const paymentMethod = state.paymentMethod || 'mpesa';
+  let mpesaCode = '';
+
+  if (paymentMethod === 'mpesa') {
+    mpesaCode = (document.getElementById('mpesa-code')?.value || '').trim().toUpperCase();
+    if (!mpesaCode) {
+      alert('Please enter your M-Pesa transaction code to complete the order.');
+      checkoutBtn.disabled = false;
+      checkoutBtn.innerHTML = originalHTML;
+      lucide.createIcons();
+      return;
+    }
+  }
+
   if (state.collectionMethod === 'delivery') {
     deliveryAddress = document.getElementById('order-delivery-address').value.trim();
     if (!deliveryAddress) {
@@ -1508,6 +1550,17 @@ async function checkoutWhatsApp() {
 
     msg += `-----------------------------------\n`;
     msg += `*Total Order Value:* KES ${formatPrice(grandTotal)}\n\n`;
+
+    // Payment method
+    if ((state.paymentMethod || 'mpesa') === 'mpesa') {
+      msg += `*Payment Method:* M-Pesa Paybill\n`;
+      msg += `• *Business No:* 222111\n`;
+      msg += `• *Account No:* 017000029397\n`;
+      msg += `• *Transaction Code:* ${mpesaCode}\n\n`;
+    } else {
+      msg += `*Payment Method:* Cash on Pick-up / Delivery\n\n`;
+    }
+
     msg += `Please confirm my order availability and advise on pickup/delivery. Thank you!`;
 
     // 3. Save to local order history log
