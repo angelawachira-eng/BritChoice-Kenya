@@ -1741,65 +1741,20 @@ function detectUserLocation() {
 function initTestimonialCarousel() {
   const track = document.getElementById('testimonial-track');
   const carousel = document.getElementById('testimonial-carousel');
-  const dotsContainer = document.getElementById('carousel-dots');
-  const prevBtn = document.getElementById('carousel-prev');
-  const nextBtn = document.getElementById('carousel-next');
 
   if (!track || !carousel) return;
 
   const cards = Array.from(track.children);
   const total = cards.length;
   let current = 0;
-  let autoTimer = null;
-
-  // Build dot indicators
-  cards.forEach((_, i) => {
-    const dot = document.createElement('button');
-    dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
-    dot.setAttribute('aria-label', `Go to review ${i + 1}`);
-    dot.addEventListener('click', () => goTo(i));
-    dotsContainer.appendChild(dot);
-  });
 
   function goTo(index) {
     current = (index + total) % total;
     track.style.transform = `translateX(-${current * 100}%)`;
-    // Update dots
-    dotsContainer.querySelectorAll('.carousel-dot').forEach((d, i) => {
-      d.classList.toggle('active', i === current);
-    });
   }
 
-  function startAuto() {
-    autoTimer = setInterval(() => goTo(current + 1), 7000);
-  }
-
-  function stopAuto() {
-    clearInterval(autoTimer);
-  }
-
-  prevBtn.addEventListener('click', () => { stopAuto(); goTo(current - 1); startAuto(); });
-  nextBtn.addEventListener('click', () => { stopAuto(); goTo(current + 1); startAuto(); });
-
-  // Pause on hover
-  carousel.addEventListener('mouseenter', stopAuto);
-  carousel.addEventListener('mouseleave', startAuto);
-
-  // Touch swipe support
-  let touchStartX = 0;
-  carousel.addEventListener('touchstart', (e) => {
-    touchStartX = e.changedTouches[0].clientX;
-  }, { passive: true });
-  carousel.addEventListener('touchend', (e) => {
-    const diff = touchStartX - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 40) {
-      stopAuto();
-      goTo(diff > 0 ? current + 1 : current - 1);
-      startAuto();
-    }
-  }, { passive: true });
-
-  startAuto();
+  // Auto-glide only — no manual controls
+  setInterval(() => goTo(current + 1), 7000);
 }
 
 // Call carousel init after DOM is ready

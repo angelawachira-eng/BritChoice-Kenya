@@ -1956,48 +1956,12 @@ button {
   color: var(--text-muted);
 }
 
-/* === Prev / Next Arrows — pill style, sit below card === */
-.carousel-btn {
-  position: absolute;
-  bottom: 16px;
-  width: auto;
-  height: 36px;
-  padding: 0 14px;
-  border-radius: 999px;
-  background: var(--primary-dark);
-  border: none;
-  box-shadow: 0 3px 10px rgba(15,23,42,0.18);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  z-index: 2;
-  transition: all var(--transition-fast);
-  color: white;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  top: auto;
-  transform: none;
-}
-.carousel-btn:hover {
-  background: var(--primary);
-  box-shadow: 0 5px 16px rgba(15,23,42,0.25);
-  transform: translateY(-1px);
-}
-.carousel-btn i {
-  width: 15px;
-  height: 15px;
-}
-.carousel-prev { left: 16px; }
-.carousel-next { right: 16px; }
-
-/* Push card content up so arrows don't overlap text */
+/* Testimonial card — restore normal padding now arrows are gone */
 .testimonial-card {
-  padding-bottom: 64px;
+  padding-bottom: 24px;
 }
 
-/* Hide dots (replaced by arrows) */
+/* Hide dots */
 .carousel-dots { display: none; }
 
 
