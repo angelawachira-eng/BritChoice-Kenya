@@ -140,7 +140,7 @@ function initGoogleTranslateHider() {
 function initPWAInstall() {
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js')
+      navigator.serviceWorker.register('/sw.js?v=12')
         .then(reg => console.log('Service Worker registered with scope:', reg.scope))
         .catch(err => console.log('Service Worker registration failed:', err));
     });
@@ -406,14 +406,14 @@ function jsonParseSafe(str, fallback) {
 async function fetchProducts() {
   const gridContainer = document.getElementById('product-grid');
   try {
-    console.time('⏱ 1. fetch /api/products/');
+    console.time('1. fetch /api/products/');
     const response = await fetch(`${API_BASE}/api/products/`);
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    console.timeEnd('⏱ 1. fetch /api/products/');
+    console.timeEnd('1. fetch /api/products/');
 
-    console.time('⏱ 2. response.json()');
+    console.time('2. response.json()');
     const data = await response.json();
-    console.timeEnd('⏱ 2. response.json()');
+    console.timeEnd('2. response.json()');
 
     state.products = data;
     state.categories.clear();
@@ -423,15 +423,15 @@ async function fetchProducts() {
       if (p.brand) state.brands.add(p.brand);
     });
 
-    console.time('⏱ 3. populateFiltersUI()');
+    console.time('3. populateFiltersUI()');
     populateFiltersUI();
-    console.timeEnd('⏱ 3. populateFiltersUI()');
+    console.timeEnd('3. populateFiltersUI()');
 
-    console.time('⏱ 4. applyFiltersAndRender()');
+    console.time('4. applyFiltersAndRender()');
     applyFiltersAndRender();
-    console.timeEnd('⏱ 4. applyFiltersAndRender()');
+    console.timeEnd('4. applyFiltersAndRender()');
 
-    console.log('✅ Total products rendered:', state.filteredProducts.length);
+    console.log('Total products rendered:', state.filteredProducts.length);
   } catch (error) {
     console.error('Failed to fetch products:', error);
     gridContainer.innerHTML = `
@@ -1515,8 +1515,7 @@ async function checkoutWhatsApp() {
       throw new Error(result.error || 'Failed to check out and reduce stock.');
     }
 
-    // 2. Format WhatsApp message
-    let msg = `*NEW ORDER - BRITCHOICE KENYA* 🛍️\n\n`;
+    let msg = `*NEW ORDER - BRITCHOICE KENYA*\n\n`;
     msg += `*Customer:* ${clientName}\n`;
     msg += `*WhatsApp:* ${clientPhone}\n`;
     if (clientEmail) {
