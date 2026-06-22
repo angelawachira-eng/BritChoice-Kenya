@@ -1,4 +1,4 @@
-const CACHE_NAME = 'britchoice-cache-v3';
+const CACHE_NAME = 'britchoice-cache-v4';
 const ASSETS = [
   '/',
   '/static/style.css',
