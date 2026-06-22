@@ -350,6 +350,13 @@ function openInfoModal(targetTab = 'about-tab') {
 
 function closeInfoModal() {
   document.getElementById('info-modal').classList.add('hidden');
+  // Revert active bottom tab back to catalog or about depending on active page view
+  const aboutPageView = document.getElementById('about-page-view');
+  if (aboutPageView && !aboutPageView.classList.contains('hidden')) {
+    setActiveBottomNavTab('btn-bottom-about');
+  } else {
+    setActiveBottomNavTab('btn-bottom-catalog');
+  }
 }
 
 function openProfileModal() {
@@ -362,6 +369,16 @@ function closeProfileModal() {
 
 function setActiveHeaderLink(btnId) {
   document.querySelectorAll('.header-nav .nav-link-btn').forEach(btn => {
+    if (btn.id === btnId) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+}
+
+function setActiveBottomNavTab(btnId) {
+  document.querySelectorAll('.mobile-bottom-nav .mobile-bottom-nav-btn').forEach(btn => {
     if (btn.id === btnId) {
       btn.classList.add('active');
     } else {
@@ -493,6 +510,62 @@ function populateFiltersUI() {
     brandSelect.value = state.filters.brand || 'all';
   }
 
+  // 3. Populate Mobile Horizontal Categories Swiper
+  const swiperList = document.getElementById('mobile-categories-list');
+  if (swiperList) {
+    swiperList.innerHTML = '';
+    
+    // "All Products" pill
+    const allPill = document.createElement('button');
+    allPill.className = 'category-pill-btn';
+    allPill.setAttribute('data-category', 'all');
+    allPill.innerHTML = `
+      <i data-lucide="layout-grid"></i>
+      <span>All Products</span>
+    `;
+    if (state.filters.category === 'all') {
+      allPill.classList.add('active');
+    }
+    allPill.addEventListener('click', () => {
+      setActiveCategory('all');
+    });
+    swiperList.appendChild(allPill);
+
+    // Dynamic Categories pills
+    Array.from(state.categories).sort().forEach(catName => {
+      const pill = document.createElement('button');
+      pill.className = 'category-pill-btn';
+      pill.setAttribute('data-category', catName);
+      
+      // Choose icon
+      let iconName = 'tag';
+      const cleanCat = catName.toLowerCase();
+      if (cleanCat.includes('detergent')) iconName = 'sparkles';
+      else if (cleanCat.includes('fragrance')) iconName = 'wind';
+      else if (cleanCat.includes('household')) iconName = 'home';
+      else if (cleanCat.includes('laundry')) iconName = 'shirt';
+      else if (cleanCat.includes('make-up') || cleanCat.includes('makeup')) iconName = 'palette';
+      else if (cleanCat.includes('personal')) iconName = 'smile';
+      else if (cleanCat.includes('skin')) iconName = 'heart-pulse';
+      else if (cleanCat.includes('supplement')) iconName = 'activity';
+
+      pill.innerHTML = `
+        <i data-lucide="${iconName}"></i>
+        <span>${catName}</span>
+      `;
+      if (state.filters.category === catName) {
+        pill.classList.add('active');
+      }
+      pill.addEventListener('click', () => {
+        setActiveCategory(catName);
+      });
+      swiperList.appendChild(pill);
+    });
+
+    // Render icons for swiper
+    lucide.createIcons({ nodes: document.querySelectorAll('#mobile-categories-list [data-lucide]') });
+  }
+
   // Scope lucide to just the sidebar list — avoids rescanning the whole document
   lucide.createIcons({ nodes: document.querySelectorAll('#category-filter-list [data-lucide]') });
 }
@@ -594,6 +667,40 @@ function setupEventListeners() {
   document.getElementById('about-back-btn').addEventListener('click', () => {
     showCatalogView();
   });
+
+  // Mobile Bottom Navigation Bar Link clicks
+  const bottomCatalog = document.getElementById('btn-bottom-catalog');
+  if (bottomCatalog) {
+    bottomCatalog.addEventListener('click', () => {
+      resetAllFilters();
+      showCatalogView();
+      const mainLayout = document.querySelector('.main-layout');
+      if (mainLayout) mainLayout.scrollIntoView({ behavior: 'smooth' });
+    });
+  }
+
+  const bottomAbout = document.getElementById('btn-bottom-about');
+  if (bottomAbout) {
+    bottomAbout.addEventListener('click', () => {
+      showAboutView();
+    });
+  }
+
+  const bottomContact = document.getElementById('btn-bottom-contact');
+  if (bottomContact) {
+    bottomContact.addEventListener('click', () => {
+      showCatalogView();
+      openInfoModal('contact-tab');
+      setActiveBottomNavTab('btn-bottom-contact');
+    });
+  }
+
+  const bottomCart = document.getElementById('btn-bottom-cart');
+  if (bottomCart) {
+    bottomCart.addEventListener('click', () => {
+      toggleCartDrawer();
+    });
+  }
 
   // Brand dropdown selector change handler
   const brandSelect = document.getElementById('brand-filter-select');
@@ -859,6 +966,15 @@ function setActiveCategory(cat) {
     }
   });
 
+  // Highlight active mobile swiper item
+  document.querySelectorAll('#mobile-categories-list .category-pill-btn').forEach(btn => {
+    if (btn.getAttribute('data-category') === cat) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+
   applyFiltersAndRender();
 }
 
@@ -1121,12 +1237,55 @@ function addToCart(productId, event) {
   saveCart();
   updateCartUI();
   applyFiltersAndRender();
+  triggerAddToCartFeedback(product.product_name || product.full_product_title);
   
   // Update modal detail view if currently open and showing this product
   const modal = document.getElementById('product-modal');
   if (!modal.classList.contains('hidden') && state.activeModalId === productId) {
     openProductModal(productId);
   }
+}
+
+// Shake cart icons and trigger toast notification on item add
+function triggerAddToCartFeedback(productName) {
+  // 1. Shaking animation
+  const buttons = ['cart-toggle-btn', 'btn-bottom-cart'];
+  buttons.forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) {
+      btn.classList.remove('cart-shake');
+      void btn.offsetWidth; // Trigger reflow to restart CSS keyframe animation
+      btn.classList.add('cart-shake');
+      
+      setTimeout(() => {
+        btn.classList.remove('cart-shake');
+      }, 600);
+    }
+  });
+
+  // 2. Toast notification
+  let toast = document.getElementById('toast-notification-wrap');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'toast-notification-wrap';
+    toast.className = 'toast-notification';
+    document.body.appendChild(toast);
+  }
+
+  toast.innerHTML = `
+    <i data-lucide="check-circle-2"></i>
+    <span>Added to Cart: ${productName}</span>
+  `;
+  
+  lucide.createIcons({ nodes: [toast.querySelector('[data-lucide]')] });
+  toast.classList.add('show');
+
+  if (state.toastTimeout) {
+    clearTimeout(state.toastTimeout);
+  }
+  state.toastTimeout = setTimeout(() => {
+    toast.classList.remove('show');
+  }, 2500);
 }
 
 function updateCartItemQty(productId, delta, event) {
@@ -1181,6 +1340,12 @@ function updateCartUI() {
 
   cartBadge.textContent = totalItems;
   drawerCount.textContent = `${totalItems} item${totalItems === 1 ? '' : 's'}`;
+
+  // Update mobile bottom nav cart badge
+  const bottomCartBadge = document.getElementById('bottom-cart-count-badge');
+  if (bottomCartBadge) {
+    bottomCartBadge.textContent = totalItems;
+  }
 
   if (state.cart.length === 0) {
     itemsList.innerHTML = '';
@@ -1397,6 +1562,7 @@ function showCatalogView() {
   document.querySelector('.main-layout').classList.remove('hidden');
   document.querySelector('.trust-testimonials-section').classList.remove('hidden');
   setActiveHeaderLink('nav-catalog-btn');
+  setActiveBottomNavTab('btn-bottom-catalog');
 }
 
 // Show About view and swap elements
@@ -1406,6 +1572,7 @@ function showAboutView() {
   document.querySelector('.main-layout').classList.add('hidden');
   document.querySelector('.trust-testimonials-section').classList.add('hidden');
   setActiveHeaderLink('nav-about-btn');
+  setActiveBottomNavTab('btn-bottom-about');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 

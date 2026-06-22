@@ -128,6 +128,13 @@
 
     <!-- Catalog Content -->
     <section class="catalog-content">
+      <!-- Mobile Horizontal Categories Swiper -->
+      <div class="mobile-categories-swiper">
+        <div id="mobile-categories-list" class="mobile-categories-list">
+          <!-- Loaded dynamically in app.js -->
+        </div>
+      </div>
+
       <div class="catalog-header">
         <div class="results-info">
           <h2 id="catalog-title">All Products</h2>
@@ -281,6 +288,7 @@
   <!-- Cart Drawer -->
   <div id="cart-drawer" class="cart-drawer-backdrop hidden">
     <div class="cart-drawer-content">
+      <div class="bottom-sheet-handle"></div>
       <div class="cart-drawer-header">
         <h2>Shopping Cart (<span id="cart-drawer-count">0</span>)</h2>
         <button id="cart-close-btn" class="icon-btn" aria-label="Close Cart">
@@ -773,6 +781,29 @@
       </div>
     </div>
   </div>
+
+  <!-- Floating Bottom Navigation Bar (Mobile only) -->
+  <nav class="mobile-bottom-nav">
+    <button class="mobile-bottom-nav-btn active" id="btn-bottom-catalog">
+      <i data-lucide="layout-grid"></i>
+      <span>Catalog</span>
+    </button>
+    <button class="mobile-bottom-nav-btn" id="btn-bottom-about">
+      <i data-lucide="book-open"></i>
+      <span>Our Story</span>
+    </button>
+    <button class="mobile-bottom-nav-btn" id="btn-bottom-contact">
+      <i data-lucide="map-pin"></i>
+      <span>Contact</span>
+    </button>
+    <button class="mobile-bottom-nav-btn" id="btn-bottom-cart">
+      <div class="cart-icon-wrapper">
+        <i data-lucide="shopping-bag"></i>
+        <span id="bottom-cart-count-badge" class="badge">0</span>
+      </div>
+      <span>Cart</span>
+    </button>
+  </nav>
 
   <!-- Scripts -->
   <script type="text/javascript">
