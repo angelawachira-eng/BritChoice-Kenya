@@ -395,8 +395,10 @@ function setActiveBottomNavTab(btnId) {
 }
 
 function jsonParseSafe(str, fallback) {
+  if (!str) return fallback;
   try {
-    return JSON.parse(str);
+    const parsed = JSON.parse(str);
+    return parsed === null ? fallback : parsed;
   } catch (e) {
     return fallback;
   }
