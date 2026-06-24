@@ -5,7 +5,11 @@ def run():
     df = pd.read_excel("Inventory/BritChoice_Product_Inventory.xlsx", header=3)
     df.columns = df.columns.str.strip()
 
+    active_skus = []
     for _, row in df.iterrows():
+        sku = str(row["Product SKU"]).strip()
+        active_skus.append(sku)
+        
         # Clean up Pandas float conversion for integers
         size_raw = row["Size / Qty"]
         size_qty = ""
@@ -24,7 +28,7 @@ def run():
                 size_qty = str(size_raw)
 
         Product.objects.update_or_create(
-            sku=row["Product SKU"],
+            sku=sku,
             defaults={
                 "category": row["Category"],
                 "brand": row["Brand"],
@@ -39,5 +43,10 @@ def run():
                 "image_path": row["Image File Path"],
             }
         )
+
+    # Automatically delete any products from the database that are no longer in the Excel sheet
+    deleted_count, _ = Product.objects.exclude(sku__in=active_skus).delete()
+    if deleted_count > 0:
+        print(f"Removed {deleted_count} deleted/stale product(s) from the database.")
 
     print("Full sync completed successfully")
