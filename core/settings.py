@@ -26,10 +26,11 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-d_-5(k0p#xa*^#
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = 'RENDER' not in os.environ
 
-ALLOWED_HOSTS = ['dreadful-aerosol-humbly.ngrok-free.dev','localhost', '127.0.0.1', '.onrender.com']
+ALLOWED_HOSTS = ['dreadful-aerosol-humbly.ngrok-free.dev','localhost', '127.0.0.1', '.onrender.com', '.pythonanywhere.com']
 
 CSRF_TRUSTED_ORIGINS = [
     "https://dreadful-aerosol-humbly.ngrok-free.dev",
+    "https://*.pythonanywhere.com",
 ]
 
 
