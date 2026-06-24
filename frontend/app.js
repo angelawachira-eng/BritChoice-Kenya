@@ -140,7 +140,7 @@ function initGoogleTranslateHider() {
 function initPWAInstall() {
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js?v=12')
+      navigator.serviceWorker.register('/sw.js?v=15')
         .then(reg => console.log('Service Worker registered with scope:', reg.scope))
         .catch(err => console.log('Service Worker registration failed:', err));
     });
@@ -472,14 +472,14 @@ function populateFiltersUI() {
     // Choose appropriate icon based on category
     let iconName = 'tag';
     const cleanCat = catName.toLowerCase();
-    if (cleanCat.includes('detergent')) iconName = 'sparkles';
-    else if (cleanCat.includes('fragrance')) iconName = 'wind';
-    else if (cleanCat.includes('household')) iconName = 'home';
-    else if (cleanCat.includes('laundry')) iconName = 'shirt';
-    else if (cleanCat.includes('make-up') || cleanCat.includes('makeup')) iconName = 'palette';
-    else if (cleanCat.includes('personal')) iconName = 'smile';
-    else if (cleanCat.includes('skin')) iconName = 'heart-pulse';
-    else if (cleanCat.includes('supplement')) iconName = 'activity';
+    if (cleanCat.includes('detergent')) iconName = 'spray-can';
+    else if (cleanCat.includes('fragrance')) iconName = 'perfume-bottle';
+    else if (cleanCat.includes('household')) iconName = 'armchair';
+    else if (cleanCat.includes('laundry')) iconName = 'laundry-basket';
+    else if (cleanCat.includes('make-up') || cleanCat.includes('makeup')) iconName = 'brush-stars';
+    else if (cleanCat.includes('personal')) iconName = 'soap-hand';
+    else if (cleanCat.includes('skin')) iconName = 'droplet';
+    else if (cleanCat.includes('supplement')) iconName = 'supplement-bottle';
 
     li.innerHTML = `
       <i data-lucide="${iconName}"></i>
@@ -547,14 +547,14 @@ function populateFiltersUI() {
       // Choose icon
       let iconName = 'tag';
       const cleanCat = catName.toLowerCase();
-      if (cleanCat.includes('detergent')) iconName = 'sparkles';
-      else if (cleanCat.includes('fragrance')) iconName = 'wind';
-      else if (cleanCat.includes('household')) iconName = 'home';
-      else if (cleanCat.includes('laundry')) iconName = 'shirt';
-      else if (cleanCat.includes('make-up') || cleanCat.includes('makeup')) iconName = 'palette';
-      else if (cleanCat.includes('personal')) iconName = 'smile';
-      else if (cleanCat.includes('skin')) iconName = 'heart-pulse';
-      else if (cleanCat.includes('supplement')) iconName = 'activity';
+      if (cleanCat.includes('detergent')) iconName = 'spray-can';
+      else if (cleanCat.includes('fragrance')) iconName = 'perfume-bottle';
+      else if (cleanCat.includes('household')) iconName = 'armchair';
+      else if (cleanCat.includes('laundry')) iconName = 'laundry-basket';
+      else if (cleanCat.includes('make-up') || cleanCat.includes('makeup')) iconName = 'brush-stars';
+      else if (cleanCat.includes('personal')) iconName = 'soap-hand';
+      else if (cleanCat.includes('skin')) iconName = 'droplet';
+      else if (cleanCat.includes('supplement')) iconName = 'supplement-bottle';
 
       pill.innerHTML = `
         <i data-lucide="${iconName}"></i>
@@ -1629,6 +1629,8 @@ function showCatalogView() {
   document.querySelector('.hero-section').classList.remove('hidden');
   document.querySelector('.main-layout').classList.remove('hidden');
   document.querySelector('.trust-testimonials-section').classList.remove('hidden');
+  const footer = document.querySelector('.app-footer-page');
+  if (footer) footer.classList.remove('hidden');
   setActiveHeaderLink('nav-catalog-btn');
   setActiveBottomNavTab('btn-bottom-catalog');
 }
@@ -1639,6 +1641,8 @@ function showAboutView() {
   document.querySelector('.hero-section').classList.add('hidden');
   document.querySelector('.main-layout').classList.add('hidden');
   document.querySelector('.trust-testimonials-section').classList.add('hidden');
+  const footer = document.querySelector('.app-footer-page');
+  if (footer) footer.classList.add('hidden');
   setActiveHeaderLink('nav-about-btn');
   setActiveBottomNavTab('btn-bottom-about');
   scrollToTop();

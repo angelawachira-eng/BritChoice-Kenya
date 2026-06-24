@@ -4,7 +4,7 @@
   <script>
     // Force clean cache on version mismatch
     (function() {
-      const EXPECTED_VERSION = 'v12';
+      const EXPECTED_VERSION = 'v20';
       if (localStorage.getItem('britchoice_app_version') !== EXPECTED_VERSION) {
         localStorage.setItem('britchoice_app_version', EXPECTED_VERSION);
         if ('serviceWorker' in navigator) {
@@ -36,7 +36,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="/static/style.css?v=12">
+  <link rel="stylesheet" href="/static/style.css?v=20">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   
   <!-- PWA Manifest & App configuration -->
@@ -81,7 +81,7 @@
 
         <!-- Install App Button (Hidden by default, shown by PWA prompt) -->
         <button id="header-install-btn" class="header-install-btn hidden" aria-label="Install App">
-          <i data-lucide="download"></i>
+          <i data-lucide="smartphone-add"></i>
           <span>Install App</span>
         </button>
         
@@ -112,7 +112,7 @@
   <section class="hero-section">
     <div class="hero-overlay"></div>
     <div class="hero-container">
-      <div class="hero-badge"><i data-lucide="sparkles"></i> <span data-i18n="hero_badge">Peter & Maggie's Curated UK Imports</span></div>
+      <div class="hero-badge"><i data-lucide="imports-plane"></i> <span data-i18n="hero_badge">Peter & Maggie's Curated UK Imports</span></div>
       <h2 data-i18n="hero_title">Bringing the Best of the UK Straight to Kenya</h2>
       <p data-i18n="hero_desc">Peter and Maggie's handpicked selection of authentic, high-quality British products—from household cleaning and skin care to daily supplements. Sourced directly from UK stores, stored locally in Nairobi, and ready for instant pick-up.</p>
       
@@ -523,7 +523,6 @@
       <div class="about-snippet-block">
         <span class="trust-badge"><i data-lucide="shield-check"></i> Authentic & Sourced in the UK</span>
         <h2>About BritChoice Kenya</h2>
-        <p class="about-lead-desc">Peter and Maggie's handpicked selection of authentic, high-quality British products &mdash; from household cleaning and skin care to daily supplements. Sourced directly from UK stores, stored locally in Nairobi, and ready for instant pick-up.</p>
         <p>BritChoice Kenya is a premier shopping hub dedicated to bringing genuine, high-quality British products to families across Kenya. Every single product in our catalog is hand-selected and imported directly from established UK retailers. We store our inventory locally in Nairobi, meaning you get authentic products instantly without shipping delays, hidden fees, or custom hassles.</p>
         <div class="trust-icons-grid">
           <div class="trust-icon-item">
@@ -613,7 +612,7 @@
           <button id="footer-privacy-btn" class="footer-link-btn">Privacy & Cookies</button>
           <span id="footer-install-divider" class="divider hidden">•</span>
           <button id="footer-install-btn" class="footer-link-btn install-btn-pwa hidden">
-            <i data-lucide="download" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 2px;"></i> Install App
+            <i data-lucide="smartphone-add" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 2px;"></i> Install App
           </button>
         </div>
       </div>
@@ -914,7 +913,7 @@
         
         <!-- PWA Install App block in mobile menu -->
         <div id="mobile-install-app-block" class="mobile-install-card hidden">
-          <i data-lucide="download" class="install-card-icon"></i>
+          <i data-lucide="smartphone-add" class="install-card-icon"></i>
           <div>
             <h3>Install BritChoice App</h3>
             <p>Save this app to your home screen for rapid full-screen browsing and instant checkout access.</p>
@@ -961,7 +960,7 @@
   </script>
   <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <script src="/static/icons.js?v=12"></script>
-  <script src="/static/app.js?v=12"></script>
+  <script src="/static/icons.js?v=20"></script>
+  <script src="/static/app.js?v=20"></script>
 </body>
 </html>
