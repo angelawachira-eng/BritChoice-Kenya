@@ -50,10 +50,12 @@ const state = {
 // Debounce helper — prevents rapid re-renders on search input
 function debounce(fn, delay) {
   let timer;
-  return (...args) => {
+  const debounced = (...args) => {
     clearTimeout(timer);
     timer = setTimeout(() => fn(...args), delay);
   };
+  debounced.cancel = () => clearTimeout(timer);
+  return debounced;
 }
 
 // Inline SVGs for icons used inside product cards.
@@ -65,6 +67,8 @@ const SVG = {
   checkCircle: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>',
   alertCircle: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>',
   chevronsDown: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 6 5 5 5-5"/><path d="m7 13 5 5 5-5"/></svg>',
+  chevronLeft: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
+  chevronRight: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>',
 };
 
 // Initialisation
@@ -84,16 +88,20 @@ document.addEventListener('DOMContentLoaded', () => {
 // Suppress Google Translate hover popups and banners dynamically
 function initGoogleTranslateHider() {
   const hidePopups = () => {
-    const ids = ['goog-gt-tt', 'goog-gt-tt-holder'];
+    // 1. Hide popups and tooltip structures safely via CSS overrides to prevent JS crashes
+    const ids = ['goog-gt-tt', 'goog-gt-tt-holder', 'goog-gt-tt-outer'];
     ids.forEach(id => {
       const el = document.getElementById(id);
       if (el) {
         el.style.setProperty('display', 'none', 'important');
         el.style.setProperty('visibility', 'hidden', 'important');
         el.style.setProperty('opacity', '0', 'important');
+        el.style.setProperty('height', '0px', 'important');
+        el.style.setProperty('width', '0px', 'important');
         el.style.setProperty('pointer-events', 'none', 'important');
       }
     });
+
     const classes = ['goog-te-balloon-frame', 'goog-te-balloon', 'goog-tooltip', 'goog-tooltip-back', 'goog-te-banner', 'goog-te-banner-frame'];
     classes.forEach(cls => {
       const els = document.getElementsByClassName(cls);
@@ -101,15 +109,35 @@ function initGoogleTranslateHider() {
         el.style.setProperty('display', 'none', 'important');
         el.style.setProperty('visibility', 'hidden', 'important');
         el.style.setProperty('opacity', '0', 'important');
+        el.style.setProperty('height', '0px', 'important');
+        el.style.setProperty('width', '0px', 'important');
         el.style.setProperty('pointer-events', 'none', 'important');
       }
     });
+
+    // 2. Hide Google Translate top banner iframe
+    const bannerFrames = document.querySelectorAll('iframe.goog-te-banner-frame, .goog-te-banner-frame, .goog-te-banner');
+    bannerFrames.forEach(frame => {
+      frame.style.setProperty('display', 'none', 'important');
+      frame.style.setProperty('visibility', 'hidden', 'important');
+      frame.style.setProperty('height', '0px', 'important');
+      frame.style.setProperty('opacity', '0', 'important');
+      frame.style.setProperty('pointer-events', 'none', 'important');
+    });
+
+    // 3. Reset document spacing dynamically (prevent shifts)
+    if (document.body.style.top !== '0px' && document.body.style.top !== '') {
+      document.body.style.setProperty('top', '0px', 'important');
+    }
+    if (document.documentElement.style.marginTop !== '0px' && document.documentElement.style.marginTop !== '') {
+      document.documentElement.style.setProperty('margin-top', '0px', 'important');
+    }
   };
 
   hidePopups();
-  setInterval(hidePopups, 500);
+  setInterval(hidePopups, 200); // Poll faster (200ms) for high-responsiveness
 
-  // Hook MutationObserver for instant DOM addition handling
+  // Hook MutationObserver on documentElement (HTML root) to catch attachments outside document.body
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       mutation.addedNodes.forEach((node) => {
@@ -117,23 +145,54 @@ function initGoogleTranslateHider() {
           const isGoogleElement = 
             node.id === 'goog-gt-tt' || 
             node.id === 'goog-gt-tt-holder' ||
+            node.classList.contains('goog-te-banner-frame') ||
             (node.className && typeof node.className === 'string' && (
               node.className.includes('goog-te-balloon-frame') ||
               node.className.includes('goog-te-balloon') ||
               node.className.includes('goog-tooltip') ||
               node.className.includes('goog-te-banner')
             ));
+          
           if (isGoogleElement) {
+            // Apply style overrides instead of .remove() to prevent Google script crashes
             node.style.setProperty('display', 'none', 'important');
             node.style.setProperty('visibility', 'hidden', 'important');
             node.style.setProperty('opacity', '0', 'important');
+            node.style.setProperty('height', '0px', 'important');
+            node.style.setProperty('width', '0px', 'important');
             node.style.setProperty('pointer-events', 'none', 'important');
           }
         }
       });
     });
   });
-  observer.observe(document.body, { childList: true, subtree: true });
+  observer.observe(document.documentElement, { childList: true, subtree: true });
+}
+
+// Helper checks for PWA installation
+function isIOS() {
+  const ua = navigator.userAgent.toLowerCase();
+  return /ipad|iphone|ipod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+function isStandalone() {
+  return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+}
+
+function openIOSInstallModal() {
+  const modal = document.getElementById('ios-install-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+}
+
+function closeIOSInstallModal() {
+  const modal = document.getElementById('ios-install-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
 }
 
 // Register PWA Service Worker & Install Prompts
@@ -150,6 +209,25 @@ function initPWAInstall() {
         window.location.reload();
       }
     });
+  }
+
+  // If already running as PWA standalone, hide installation UI
+  if (isStandalone()) {
+    hideInstallUI();
+    return;
+  }
+
+  // iOS Safari doesn't fire beforeinstallprompt but we want to show install option
+  if (isIOS()) {
+    const mobBlock = document.getElementById('mobile-install-app-block');
+    const footDivider = document.getElementById('footer-install-divider');
+    const footBtn = document.getElementById('footer-install-btn');
+    const headerBtn = document.getElementById('header-install-btn');
+
+    if (mobBlock) mobBlock.classList.remove('hidden');
+    if (footDivider) footDivider.classList.remove('hidden');
+    if (footBtn) footBtn.classList.remove('hidden');
+    if (headerBtn) headerBtn.classList.remove('hidden');
   }
 
   window.addEventListener('beforeinstallprompt', (e) => {
@@ -187,8 +265,16 @@ function hideInstallUI() {
 }
 
 async function triggerPWAInstall() {
+  if (isIOS()) {
+    openIOSInstallModal();
+    return;
+  }
+
   const promptEvent = state.deferredPrompt;
-  if (!promptEvent) return;
+  if (!promptEvent) {
+    alert("To install this app, tap your browser's menu button and select 'Install app' or 'Add to Home screen'.");
+    return;
+  }
   
   promptEvent.prompt();
   const { outcome } = await promptEvent.userChoice;
@@ -310,7 +396,7 @@ function renderOrderHistory() {
       <div class="order-card-items">${ord.items}</div>
       <div class="order-card-footer">
         <span class="order-total-label">${ord.method}</span>
-        <span class="order-total-val">KES ${formatPrice(ord.total)}</span>
+        <span class="order-total-val notranslate" translate="no">KES ${formatPrice(ord.total)}</span>
       </div>
     </div>
   `).join('');
@@ -595,10 +681,33 @@ function setupEventListeners() {
     const value = e.target.value.trim();
     if (value) {
       clearSearchBtn.classList.remove('hidden');
+      resetFiltersForSearch();
     } else {
       clearSearchBtn.classList.add('hidden');
     }
     debouncedSearch(value);
+  });
+
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      debouncedSearch.cancel();
+      
+      const value = searchInput.value.trim();
+      resetFiltersForSearch();
+      state.filters.search = value;
+      state.currentPage = 1;
+      applyFiltersAndRender();
+
+      // Scroll to catalog section
+      const mainLayout = document.querySelector('.main-layout');
+      if (mainLayout) {
+        mainLayout.scrollIntoView({ behavior: 'smooth' });
+      }
+
+      // Blur to hide keyboard on mobile devices
+      searchInput.blur();
+    }
   });
 
   clearSearchBtn.addEventListener('click', () => {
@@ -615,10 +724,16 @@ function setupEventListeners() {
       if (tagText === 'Skin Care' || tagText === 'Supplements') {
         setActiveCategory(tagText);
       } else {
+        resetFiltersForSearch();
         searchInput.value = tagText;
         state.filters.search = tagText;
         clearSearchBtn.classList.remove('hidden');
         applyFiltersAndRender();
+      }
+      
+      const mainLayout = document.querySelector('.main-layout');
+      if (mainLayout) {
+        mainLayout.scrollIntoView({ behavior: 'smooth' });
       }
     });
   });
@@ -630,7 +745,10 @@ function setupEventListeners() {
   });
 
   // Cart toggles
-  document.getElementById('cart-toggle-btn').addEventListener('click', toggleCartDrawer);
+  const cartToggleBtn = document.getElementById('cart-toggle-btn');
+  if (cartToggleBtn) {
+    cartToggleBtn.addEventListener('click', toggleCartDrawer);
+  }
   document.getElementById('cart-close-btn').addEventListener('click', toggleCartDrawer);
   document.getElementById('cart-continue-btn').addEventListener('click', toggleCartDrawer);
 
@@ -644,6 +762,18 @@ function setupEventListeners() {
   modalBackdrop.addEventListener('click', (e) => {
     if (e.target === modalBackdrop) closeModal();
   });
+
+  // iOS Install Modal actions
+  const iosCloseBtn = document.getElementById('ios-install-close-btn');
+  if (iosCloseBtn) {
+    iosCloseBtn.addEventListener('click', closeIOSInstallModal);
+  }
+  const iosModalBackdrop = document.getElementById('ios-install-modal');
+  if (iosModalBackdrop) {
+    iosModalBackdrop.addEventListener('click', (e) => {
+      if (e.target === iosModalBackdrop) closeIOSInstallModal();
+    });
+  }
 
   // Modal toggles and actions
   setupInfoModalTabs();
@@ -1026,6 +1156,37 @@ function setActiveBrand(brand) {
   applyFiltersAndRender();
 }
 
+function resetFiltersForSearch() {
+  if (state.filters.category !== 'all' || state.filters.brand !== 'all') {
+    state.filters.category = 'all';
+    state.filters.brand = 'all';
+
+    // Highlight active sidebar item
+    document.querySelectorAll('#category-filter-list li').forEach(li => {
+      if (li.getAttribute('data-category') === 'all') {
+        li.classList.add('active-filter-item');
+      } else {
+        li.classList.remove('active-filter-item');
+      }
+    });
+
+    // Highlight active mobile swiper item
+    document.querySelectorAll('#mobile-categories-list .category-pill-btn').forEach(btn => {
+      if (btn.getAttribute('data-category') === 'all') {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
+    // Sync active brand selector dropdown value
+    const brandSelect = document.getElementById('brand-filter-select');
+    if (brandSelect) {
+      brandSelect.value = 'all';
+    }
+  }
+}
+
 function resetAllFilters() {
   state.filters.search = '';
   state.filters.category = 'all';
@@ -1132,6 +1293,58 @@ function renderActiveFiltersUI() {
   // Icons refreshed once in renderProducts after all DOM changes
 }
 
+// Reusable product card creator helper
+function createProductCard(product) {
+  const card = document.createElement('div');
+  card.className = 'product-card';
+
+  const imgUrl = getImageUrl(product.image_path);
+
+  const variantLabel = product.variant && product.variant.toLowerCase() !== 'original' ? product.variant : '';
+  const sizeClean = formatSizeQty(product.size_qty);
+  const sizeLabel = (sizeClean && product.unit) ? `${sizeClean} ${product.unit}` : '';
+
+  const cartItem = state.cart.find(item => item.id === product.id);
+  let actionHTML = '';
+  if (cartItem) {
+    actionHTML = `
+      <div class="quantity-control">
+        <button class="qty-btn" onclick="updateCartItemQty(${product.id}, -1, event)">${SVG.minus}</button>
+        <span class="qty-number">${cartItem.quantity}</span>
+        <button class="qty-btn" onclick="updateCartItemQty(${product.id}, 1, event)">${SVG.plus}</button>
+      </div>`;
+  } else if (product.stock_count <= 0) {
+    actionHTML = `<span class="badge-out-of-stock">Sold Out</span>`;
+  } else {
+    actionHTML = `<button class="btn-icon-only" onclick="addToCart(${product.id}, event)" aria-label="Add to Cart">${SVG.plus}</button>`;
+  }
+
+  card.innerHTML = `
+    <div class="card-image-wrap" onclick="openProductModal(${product.id})">
+      <img src="${imgUrl}" alt="${product.product_name}" loading="lazy">
+      ${product.category ? `<span class="badge-overlay">${product.category}</span>` : ''}
+    </div>
+    <div class="card-info">
+      <span class="card-brand">${product.brand || 'Premium'}</span>
+      <h3 class="card-title" onclick="openProductModal(${product.id})">${product.full_product_title || product.product_name}</h3>
+      <div class="card-spec-row">
+        ${variantLabel ? `<span class="card-pill">${variantLabel}</span>` : ''}
+        ${sizeLabel ? `<span class="card-pill">${sizeLabel}</span>` : ''}
+      </div>
+      <div class="card-stock-status">
+        ${product.stock_count > 0
+          ? `<span class="stock-pill in-stock">${SVG.checkCircle} In Stock: ${product.stock_count}</span>`
+          : `<span class="stock-pill out-of-stock">${SVG.alertCircle} Out of Stock</span>`}
+      </div>
+      <div class="card-price-row">
+        <span class="card-price notranslate" translate="no">KES ${formatPrice(product.price)}</span>
+        <div class="card-action-box">${actionHTML}</div>
+      </div>
+    </div>`;
+
+  return card;
+}
+
 // Render dynamic products grid — paginated for performance
 function renderProducts() {
   const grid = document.getElementById('product-grid');
@@ -1153,83 +1366,133 @@ function renderProducts() {
 
   empty.classList.add('hidden');
 
-  // Slice to current page
-  const visibleCount = state.currentPage * state.pageSize;
-  const visibleProducts = state.filteredProducts.slice(0, visibleCount);
+  // Show horizontal carousels by category only when browsing all products (no specific filter or search)
+  const isBrowsingAll = (state.filters.category === 'all' && !state.filters.search && state.filters.brand === 'all');
 
-  // Build all cards as a single HTML fragment for one DOM write
-  const fragment = document.createDocumentFragment();
-
-  visibleProducts.forEach(product => {
-    const card = document.createElement('div');
-    card.className = 'product-card';
-
-    const imgUrl = getImageUrl(product.image_path);
-
-    const variantLabel = product.variant && product.variant.toLowerCase() !== 'original' ? product.variant : '';
-    const sizeClean = formatSizeQty(product.size_qty);
-    const sizeLabel = (sizeClean && product.unit) ? `${sizeClean} ${product.unit}` : '';
-
-    // Use inline SVG constants — no Lucide scan needed for cards
-    const cartItem = state.cart.find(item => item.id === product.id);
-    let actionHTML = '';
-    if (cartItem) {
-      actionHTML = `
-        <div class="quantity-control">
-          <button class="qty-btn" onclick="updateCartItemQty(${product.id}, -1, event)">${SVG.minus}</button>
-          <span class="qty-number">${cartItem.quantity}</span>
-          <button class="qty-btn" onclick="updateCartItemQty(${product.id}, 1, event)">${SVG.plus}</button>
-        </div>`;
-    } else if (product.stock_count <= 0) {
-      actionHTML = `<span class="badge-out-of-stock">Sold Out</span>`;
-    } else {
-      actionHTML = `<button class="btn-icon-only" onclick="addToCart(${product.id}, event)" aria-label="Add to Cart">${SVG.plus}</button>`;
-    }
-
-    card.innerHTML = `
-      <div class="card-image-wrap" onclick="openProductModal(${product.id})">
-        <img src="${imgUrl}" alt="${product.product_name}" loading="lazy">
-        ${product.category ? `<span class="badge-overlay">${product.category}</span>` : ''}
-      </div>
-      <div class="card-info">
-        <span class="card-brand">${product.brand || 'Premium'}</span>
-        <h3 class="card-title" onclick="openProductModal(${product.id})">${product.full_product_title || product.product_name}</h3>
-        <div class="card-spec-row">
-          ${variantLabel ? `<span class="card-pill">${variantLabel}</span>` : ''}
-          ${sizeLabel ? `<span class="card-pill">${sizeLabel}</span>` : ''}
-        </div>
-        <div class="card-stock-status">
-          ${product.stock_count > 0
-            ? `<span class="stock-pill in-stock">${SVG.checkCircle} In Stock: ${product.stock_count}</span>`
-            : `<span class="stock-pill out-of-stock">${SVG.alertCircle} Out of Stock</span>`}
-        </div>
-        <div class="card-price-row">
-          <span class="card-price">KES ${formatPrice(product.price)}</span>
-          <div class="card-action-box">${actionHTML}</div>
-        </div>
-      </div>`;
-
-    fragment.appendChild(card);
-  });
-
-  // Single DOM write
-  grid.innerHTML = '';
-  grid.appendChild(fragment);
-
-  // "Load More" button — also uses inline SVG, no lucide needed
-  if (visibleCount < total) {
-    const loadMoreBtn = document.createElement('button');
-    loadMoreBtn.className = 'btn-secondary load-more-btn';
-    loadMoreBtn.style.cssText = 'grid-column: 1 / -1; margin: 1rem auto; padding: 0.75rem 2.5rem;';
-    loadMoreBtn.innerHTML = `${SVG.chevronsDown} Load More (${total - visibleCount} remaining)`;
-    loadMoreBtn.addEventListener('click', () => {
-      state.currentPage++;
-      renderProducts();
-      loadMoreBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  if (isBrowsingAll) {
+    // 1. Group products by category
+    const categoriesMap = {};
+    state.filteredProducts.forEach(product => {
+      const cat = product.category || 'General';
+      if (!categoriesMap[cat]) {
+        categoriesMap[cat] = [];
+      }
+      categoriesMap[cat].push(product);
     });
-    grid.appendChild(loadMoreBtn);
+
+    const categories = Object.keys(categoriesMap).sort();
+
+    // 2. Render each category as a horizontal row
+    grid.innerHTML = '';
+    grid.style.display = 'block'; // Turn off grid structure to allow simple vertical row list
+
+    categories.forEach(catName => {
+      const catProducts = categoriesMap[catName];
+      if (catProducts.length === 0) return;
+
+      const rowDiv = document.createElement('div');
+      rowDiv.className = 'category-row';
+
+      const headerDiv = document.createElement('div');
+      headerDiv.className = 'category-row-header';
+      headerDiv.innerHTML = `
+        <h2>${catName}</h2>
+        <button class="show-all-link" onclick="setActiveCategory('${catName.replace(/'/g, "\\'")}')">
+          Show All (${catProducts.length}) <i data-lucide="chevron-right" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle;"></i>
+        </button>
+      `;
+
+      // Wrapper for horizontal items and overlay arrows
+      const wrapperDiv = document.createElement('div');
+      wrapperDiv.className = 'category-row-wrapper';
+
+      const leftBtn = document.createElement('button');
+      leftBtn.className = 'scroll-arrow scroll-arrow-left hidden';
+      leftBtn.innerHTML = SVG.chevronLeft;
+      leftBtn.setAttribute('aria-label', 'Scroll Left');
+
+      const rightBtn = document.createElement('button');
+      rightBtn.className = 'scroll-arrow scroll-arrow-right';
+      rightBtn.innerHTML = SVG.chevronRight;
+      rightBtn.setAttribute('aria-label', 'Scroll Right');
+
+      const itemsDiv = document.createElement('div');
+      itemsDiv.className = 'category-row-items';
+
+      // Preview first 8 items (slightly more for better scrolling)
+      const previewProducts = catProducts.slice(0, 8);
+      previewProducts.forEach(product => {
+        const card = createProductCard(product);
+        itemsDiv.appendChild(card);
+      });
+
+      // Smooth scroll triggers
+      leftBtn.addEventListener('click', () => {
+        itemsDiv.scrollBy({ left: -itemsDiv.clientWidth * 0.75, behavior: 'smooth' });
+      });
+      rightBtn.addEventListener('click', () => {
+        itemsDiv.scrollBy({ left: itemsDiv.clientWidth * 0.75, behavior: 'smooth' });
+      });
+
+      // Scroll position listener to toggle left/right arrows
+      itemsDiv.addEventListener('scroll', () => {
+        const scrollLeft = itemsDiv.scrollLeft;
+        const maxScroll = itemsDiv.scrollWidth - itemsDiv.clientWidth;
+        leftBtn.classList.toggle('hidden', scrollLeft <= 10);
+        rightBtn.classList.toggle('hidden', scrollLeft >= maxScroll - 10);
+      });
+
+      // Initial check for overflow after adding to DOM
+      setTimeout(() => {
+        const maxScroll = itemsDiv.scrollWidth - itemsDiv.clientWidth;
+        rightBtn.classList.toggle('hidden', maxScroll <= 10);
+      }, 100);
+
+      wrapperDiv.appendChild(leftBtn);
+      wrapperDiv.appendChild(itemsDiv);
+      wrapperDiv.appendChild(rightBtn);
+
+      rowDiv.appendChild(headerDiv);
+      rowDiv.appendChild(wrapperDiv);
+      grid.appendChild(rowDiv);
+    });
+
+    // Run Lucide update to render the "chevron-right" icon in the Show All buttons
+    lucide.createIcons({ nodes: grid.querySelectorAll('[data-lucide]') });
+
+  } else {
+    // Restore default grid display style
+    grid.style.display = '';
+
+    // Slice to current page
+    const visibleCount = state.currentPage * state.pageSize;
+    const visibleProducts = state.filteredProducts.slice(0, visibleCount);
+
+    // Build all cards as a single HTML fragment for one DOM write
+    const fragment = document.createDocumentFragment();
+
+    visibleProducts.forEach(product => {
+      const card = createProductCard(product);
+      fragment.appendChild(card);
+    });
+
+    grid.innerHTML = '';
+    grid.appendChild(fragment);
+
+    // "Load More" button
+    if (visibleCount < total) {
+      const loadMoreBtn = document.createElement('button');
+      loadMoreBtn.className = 'btn-secondary load-more-btn';
+      loadMoreBtn.style.cssText = 'grid-column: 1 / -1; margin: 1rem auto; padding: 0.75rem 2.5rem;';
+      loadMoreBtn.innerHTML = `${SVG.chevronsDown} Load More (${total - visibleCount} remaining)`;
+      loadMoreBtn.addEventListener('click', () => {
+        state.currentPage++;
+        renderProducts();
+        loadMoreBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+      grid.appendChild(loadMoreBtn);
+    }
   }
-  // NO lucide.createIcons() here — all card icons are inline SVG
 }
 
 // Formatting price
@@ -1272,7 +1535,7 @@ function addToCart(productId, event) {
   saveCart();
   updateCartUI();
   applyFiltersAndRender();
-  triggerAddToCartFeedback(product.product_name || product.full_product_title);
+  triggerAddToCartFeedback(product);
   
   // Update modal detail view if currently open and showing this product
   const modal = document.getElementById('product-modal');
@@ -1281,10 +1544,10 @@ function addToCart(productId, event) {
   }
 }
 
-// Shake cart icons and trigger toast notification on item add
-function triggerAddToCartFeedback(productName) {
+// Shake cart icons and trigger premium interactive toast notification on item add
+function triggerAddToCartFeedback(product) {
   // 1. Shaking animation
-  const buttons = ['cart-toggle-btn', 'btn-bottom-cart'];
+  const buttons = ['cart-toggle-btn', 'btn-bottom-cart'].filter(id => document.getElementById(id));
   buttons.forEach(id => {
     const btn = document.getElementById(id);
     if (btn) {
@@ -1298,30 +1561,67 @@ function triggerAddToCartFeedback(productName) {
     }
   });
 
-  // 2. Toast notification
-  let toast = document.getElementById('toast-notification-wrap');
-  if (!toast) {
-    toast = document.createElement('div');
-    toast.id = 'toast-notification-wrap';
-    toast.className = 'toast-notification';
-    document.body.appendChild(toast);
+  // 2. Interactive Toast banner
+  let banner = document.getElementById('cart-toast-banner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'cart-toast-banner';
+    banner.className = 'cart-toast-banner';
+    document.body.appendChild(banner);
   }
 
-  toast.innerHTML = `
-    <i data-lucide="check-circle-2"></i>
-    <span>Added to Cart: ${productName}</span>
+  const imgUrl = getImageUrl(product.image_path);
+  const cartItem = state.cart.find(item => item.id === product.id);
+  const quantity = cartItem ? cartItem.quantity : 1;
+
+  banner.innerHTML = `
+    <div class="cart-toast-content">
+      <img class="cart-toast-img" src="${imgUrl}" alt="${product.product_name}">
+      <div class="cart-toast-info">
+        <h4>Added to Cart</h4>
+        <p>${product.full_product_title || product.product_name}</p>
+      </div>
+      <div class="cart-toast-qty-box">
+        <div class="quantity-control">
+          <button class="qty-btn" onclick="updateCartItemQty(${product.id}, -1)">${SVG.minus}</button>
+          <span class="qty-number">${quantity}</span>
+          <button class="qty-btn" onclick="updateCartItemQty(${product.id}, 1)">${SVG.plus}</button>
+        </div>
+      </div>
+    </div>
+    <div class="cart-toast-actions">
+      <button class="cart-toast-btn btn-continue" onclick="dismissCartToast()">Continue Shopping</button>
+      <button class="cart-toast-btn btn-checkout" onclick="goToCartAndCheckout()">Proceed to Checkout</button>
+    </div>
   `;
   
-  lucide.createIcons({ nodes: [toast.querySelector('[data-lucide]')] });
-  toast.classList.add('show');
+  banner.classList.add('show');
 
   if (state.toastTimeout) {
     clearTimeout(state.toastTimeout);
   }
   state.toastTimeout = setTimeout(() => {
-    toast.classList.remove('show');
-  }, 2500);
+    dismissCartToast();
+  }, 8000);
 }
+
+function dismissCartToast() {
+  const banner = document.getElementById('cart-toast-banner');
+  if (banner) {
+    banner.classList.remove('show');
+  }
+}
+
+function goToCartAndCheckout() {
+  dismissCartToast();
+  const drawer = document.getElementById('cart-drawer');
+  if (drawer) {
+    drawer.classList.remove('hidden');
+  }
+}
+
+window.dismissCartToast = dismissCartToast;
+window.goToCartAndCheckout = goToCartAndCheckout;
 
 function updateCartItemQty(productId, delta, event) {
   if (event) event.stopPropagation();
@@ -1343,6 +1643,24 @@ function updateCartItemQty(productId, delta, event) {
   const modal = document.getElementById('product-modal');
   if (!modal.classList.contains('hidden')) {
     openProductModal(productId);
+  }
+
+  // Dynamically update cart toast if visible
+  const toastBanner = document.getElementById('cart-toast-banner');
+  if (toastBanner && toastBanner.classList.contains('show')) {
+    const item = state.cart.find(c => c.id === productId);
+    if (item) {
+      const qtyNum = toastBanner.querySelector('.qty-number');
+      if (qtyNum) qtyNum.textContent = item.quantity;
+      if (state.toastTimeout) {
+        clearTimeout(state.toastTimeout);
+      }
+      state.toastTimeout = setTimeout(() => {
+        dismissCartToast();
+      }, 8000);
+    } else {
+      dismissCartToast();
+    }
   }
 }
 
@@ -1373,7 +1691,9 @@ function updateCartUI() {
 
   const totalItems = state.cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  cartBadge.textContent = totalItems;
+  if (cartBadge) {
+    cartBadge.textContent = totalItems;
+  }
   drawerCount.textContent = `${totalItems} item${totalItems === 1 ? '' : 's'}`;
 
   // Update mobile bottom nav cart badge
@@ -1420,7 +1740,7 @@ function updateCartUI() {
             <span class="qty-number">${item.quantity}</span>
             <button class="qty-btn" onclick="updateCartItemQty(${item.id}, 1)"><i data-lucide="plus"></i></button>
           </div>
-          <span class="cart-item-price">KES ${formatPrice(itemTotal)}</span>
+          <span class="cart-item-price notranslate" translate="no">KES ${formatPrice(itemTotal)}</span>
         </div>
         <button class="cart-item-remove-btn" onclick="removeCartItem(${item.id})" aria-label="Remove Item">
           <i data-lucide="trash-2"></i>
