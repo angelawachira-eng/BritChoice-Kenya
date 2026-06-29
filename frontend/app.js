@@ -19,6 +19,28 @@ function getImageUrl(image_path) {
   return `/static/images/${relative}`;
 }
 
+// Validate and format phone numbers (supports local Kenyan and E.164 international formats)
+function validateAndFormatWhatsApp(phone) {
+  const clean = phone.replace(/[\s\-\(\)\+]/g, ''); // strip formatting and + sign
+  
+  // 1. Kenyan local number starting with 07 or 01 (10 digits total)
+  if (/^0[71]\d{8}$/.test(clean)) {
+    return '254' + clean.slice(1);
+  }
+  
+  // 2. Kenyan format already starting with 254 (12 digits total)
+  if (/^254[71]\d{8}$/.test(clean)) {
+    return clean;
+  }
+  
+  // 3. International number (starting with country code, total 7 to 15 digits)
+  if (/^\d{7,15}$/.test(clean)) {
+    return clean;
+  }
+  
+  return null; // Invalid format
+}
+
 const WHATSAPP_NUMBER = '254722247829';
 
 // Application State
@@ -76,6 +98,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initGoogleTranslateHider();
   initCart();
   initProfile();
+  checkGoogleCallbackCookie();
+  fetchGoogleConfig();
   initCookieBanner();
   initPWAInstall();
   fetchProducts();
@@ -296,12 +320,143 @@ function initCart() {
   }
 }
 
+// Fetch Google OAuth Config from Django
+async function fetchGoogleConfig() {
+  try {
+    const response = await fetch(`${API_BASE}/api/products/config/`);
+    if (response.ok) {
+      const data = await response.json();
+      state.googleClientId = data.google_client_id;
+      if (state.googleClientId) {
+        initGoogleSignIn();
+      }
+    }
+  } catch (err) {
+    console.error('Failed to load Google Sign-In config:', err);
+  }
+}
+
+// Get CSRF cookie helper
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+// Initialize Google Sign-In button flow
+function initGoogleSignIn() {
+  if (typeof google === 'undefined' || !google.accounts || !google.accounts.id) {
+    setTimeout(initGoogleSignIn, 500);
+    return;
+  }
+  
+  // Use UX Mode Redirect to bypass iframe third-party cookie/incognito block policies
+  google.accounts.id.initialize({
+    client_id: state.googleClientId,
+    ux_mode: 'redirect',
+    login_uri: `${window.location.origin}/api/products/auth/google/callback/`,
+    use_fedcm_for_prompt: false
+  });
+  
+  const btnEl = document.getElementById('google-signin-btn');
+  if (btnEl) {
+    google.accounts.id.renderButton(
+      btnEl,
+      { theme: 'outline', size: 'large', width: '100%', text: 'signup_with' }
+    );
+  }
+}
+
+// Helper to decode Google JWT token client-side
+function decodeJwt(token) {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    console.error("Failed to decode JWT:", e);
+    return null;
+  }
+}
+
+// Handle credential token callback from Google
+function handleGoogleCredentialResponse(response) {
+  const payload = decodeJwt(response.credential);
+  if (!payload) {
+    alert("Google Sign-In failed: Unable to parse account credentials.");
+    return;
+  }
+
+  const email = payload.email;
+  const name = payload.name || '';
+
+  if (!email) {
+    alert("Google Sign-In failed: Missing email address.");
+    return;
+  }
+
+  // Preserve existing phone if they are already logged in or editing
+  const existingPhone = state.profile ? state.profile.phone : '';
+
+  state.profile = {
+    name: name,
+    email: email,
+    phone: existingPhone
+  };
+
+  localStorage.setItem('britchoice_profile', JSON.stringify(state.profile));
+  updateProfileUI();
+  closeProfileModal();
+}
+
 // Load Profile from LocalStorage
 function initProfile() {
   const savedProfile = localStorage.getItem('britchoice_profile');
   if (savedProfile) {
     state.profile = jsonParseSafe(savedProfile, null);
     updateProfileUI();
+  }
+}
+
+// Check if user was redirected from Google with temporary sign-in cookie
+function checkGoogleCallbackCookie() {
+  const cookieVal = getCookie('google_user_data');
+  if (cookieVal) {
+    try {
+      // Decode base64 URL safe back to string
+      const decodedStr = atob(cookieVal);
+      const decoded = JSON.parse(decodedStr);
+      if (decoded && decoded.email) {
+        const existingPhone = state.profile ? state.profile.phone : '';
+        state.profile = {
+          name: decoded.name,
+          email: decoded.email,
+          phone: existingPhone
+        };
+        localStorage.setItem('britchoice_profile', JSON.stringify(state.profile));
+        updateProfileUI();
+        
+        // Clear the cookie immediately
+        document.cookie = "google_user_data=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax;";
+        
+        // Open modal to show dashboard
+        openProfileModal();
+      }
+    } catch (err) {
+      console.error('Failed to parse Google callback cookie:', err);
+    }
   }
 }
 
@@ -391,7 +546,7 @@ function renderOrderHistory() {
     <div class="order-history-card">
       <div class="order-card-header">
         <span class="order-date">${ord.date}</span>
-        <span class="order-status"><i data-lucide="check-circle" style="width: 10px; height: 10px; display: inline-block; vertical-align: middle;"></i> Sent</span>
+        <span class="order-status"><i data-lucide="check-circle" style="width: 10px; height: 10px; display: inline-block; vertical-align: middle;"></i> Sent ${ord.order_id ? `(${ord.order_id})` : ''}</span>
       </div>
       <div class="order-card-items">${ord.items}</div>
       <div class="order-card-footer">
@@ -874,29 +1029,28 @@ function setupEventListeners() {
   document.getElementById('profile-modal-close-btn').addEventListener('click', closeProfileModal);
   document.getElementById('info-modal-close-btn').addEventListener('click', closeInfoModal);
   
-  // Profile Auth form
-  document.getElementById('profile-auth-form').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const name = document.getElementById('auth-name').value.trim();
-    const phone = document.getElementById('auth-phone').value.trim();
-    const email = document.getElementById('auth-email').value.trim();
+  // Profile Dashboard actions - Edit phone number directly
+  document.getElementById('profile-edit-btn').addEventListener('click', () => {
+    const currentPhone = state.profile.phone || '';
+    const newPhone = prompt('Enter your WhatsApp number (to coordinate delivery):', currentPhone);
+    if (newPhone === null) return; // user cancelled
     
-    if (!name || !phone) return;
+    if (newPhone.trim() === '') {
+      state.profile.phone = '';
+      localStorage.setItem('britchoice_profile', JSON.stringify(state.profile));
+      updateProfileUI();
+      return;
+    }
     
-    state.profile = { name, phone, email };
+    const formatted = validateAndFormatWhatsApp(newPhone);
+    if (!formatted) {
+      alert('Invalid WhatsApp number. Please enter a valid number (e.g. 0712345678 or +447123456789).');
+      return;
+    }
+    
+    state.profile.phone = formatted;
     localStorage.setItem('britchoice_profile', JSON.stringify(state.profile));
     updateProfileUI();
-    closeProfileModal();
-  });
-
-  // Profile Dashboard actions
-  document.getElementById('profile-edit-btn').addEventListener('click', () => {
-    document.getElementById('auth-name').value = state.profile.name;
-    document.getElementById('auth-phone').value = state.profile.phone;
-    document.getElementById('auth-email').value = state.profile.email;
-    
-    document.getElementById('profile-state-logged-in').classList.add('hidden');
-    document.getElementById('profile-state-logged-out').classList.remove('hidden');
   });
 
   document.getElementById('profile-signout-btn').addEventListener('click', () => {
@@ -1755,7 +1909,6 @@ function updateCartUI() {
   lucide.createIcons();
 }
 
-// Compile WhatsApp message and launch chat
 async function checkoutWhatsApp() {
   if (state.cart.length === 0) return;
 
@@ -1775,18 +1928,55 @@ async function checkoutWhatsApp() {
   if (state.profile) {
     clientName = state.profile.name;
     clientPhone = state.profile.phone;
-    clientEmail = state.profile.email;
+    clientEmail = state.profile.email || '';
+    
+    // Prompt for phone if empty (Google users checkout)
+    if (!clientPhone) {
+      const rawPrompt = prompt('Please enter your WhatsApp number to coordinate delivery:');
+      if (!rawPrompt) {
+        alert('A valid WhatsApp number is required to place your order.');
+        checkoutBtn.disabled = false;
+        checkoutBtn.innerHTML = originalHTML;
+        lucide.createIcons();
+        return;
+      }
+      
+      const formatted = validateAndFormatWhatsApp(rawPrompt);
+      if (!formatted) {
+        alert('Invalid WhatsApp number. Please enter a valid number (e.g. 0712345678 or +447123456789).');
+        checkoutBtn.disabled = false;
+        checkoutBtn.innerHTML = originalHTML;
+        lucide.createIcons();
+        return;
+      }
+      
+      clientPhone = formatted;
+      state.profile.phone = formatted;
+      localStorage.setItem('britchoice_profile', JSON.stringify(state.profile));
+      updateProfileUI();
+    }
   } else {
     clientName = document.getElementById('order-name').value.trim();
-    clientPhone = document.getElementById('order-phone').value.trim();
+    const rawPhone = document.getElementById('order-phone').value.trim();
     
-    if (!clientName || !clientPhone) {
+    if (!clientName || !rawPhone) {
       alert('Please enter your name and WhatsApp number to place an order.');
       checkoutBtn.disabled = false;
       checkoutBtn.innerHTML = originalHTML;
       lucide.createIcons();
       return;
     }
+    
+    const formatted = validateAndFormatWhatsApp(rawPhone);
+    if (!formatted) {
+      alert('Please enter a valid WhatsApp number (e.g. 0712345678 or +447123456789).');
+      checkoutBtn.disabled = false;
+      checkoutBtn.innerHTML = originalHTML;
+      lucide.createIcons();
+      return;
+    }
+    
+    clientPhone = formatted;
   }
 
   // Read payment method from state
@@ -1818,17 +2008,35 @@ async function checkoutWhatsApp() {
   // Format the checkout items payload for the backend API
   const itemsPayload = state.cart.map(item => ({
     id: item.id,
-    quantity: item.quantity
+    quantity: item.quantity,
+    name: item.title
   }));
 
+  // Calculate order total
+  const grandTotal = state.cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
+
+  // Compile delivery details text for backend
+  let locationText = '';
+  if (state.collectionMethod === 'pickup') {
+    locationText = `Self Pick-up at ${state.pickupLocation === 'Kahawa Sukari' ? 'Kahawa Sukari (Main Store)' : 'World Business Centre (CBD Phan Salon)'}`;
+  } else {
+    locationText = `Delivery: ${deliveryAddress}`;
+    if (state.deliveryLocation) {
+      locationText += ` (Pin: https://www.google.com/maps?q=${state.deliveryLocation.lat},${state.deliveryLocation.lon})`;
+    }
+  }
+
   try {
-    // 1. Call stock-reduction checkout API on Django backend
+    // 1. Call stock-reduction API on Django backend
     const response = await fetch(`${API_BASE}/api/products/checkout/`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
       },
-      body: JSON.stringify({ items: itemsPayload })
+      body: JSON.stringify({
+        items: itemsPayload
+      })
     });
 
     const result = await response.json();
@@ -1837,8 +2045,11 @@ async function checkoutWhatsApp() {
       throw new Error(result.error || 'Failed to check out and reduce stock.');
     }
 
-    let msg = `*NEW ORDER - BRITCHOICE KENYA*\n\n`;
-    msg += `*Customer:* ${clientName}\n`;
+    let msg = `*NEW ORDER - BRITCHOICE KENYA*\n`;
+    if (result.order_id) {
+      msg += `*Order ID:* ${result.order_id}\n`;
+    }
+    msg += `\n*Customer:* ${clientName}\n`;
     msg += `*WhatsApp:* ${clientPhone}\n`;
     if (clientEmail) {
       msg += `*Email:* ${clientEmail}\n`;
@@ -1862,12 +2073,8 @@ async function checkoutWhatsApp() {
     
     msg += `\n-----------------------------------\n\n`;
 
-    let grandTotal = 0;
-
     state.cart.forEach((item, idx) => {
       const itemTotal = parseFloat(item.price) * item.quantity;
-      grandTotal += itemTotal;
-      
       const spec = [item.variant, item.size].filter(Boolean).join(', ');
       const specStr = spec ? ` (${spec})` : '';
 
@@ -1879,7 +2086,7 @@ async function checkoutWhatsApp() {
     msg += `*Total Order Value:* KES ${formatPrice(grandTotal)}\n\n`;
 
     // Payment method
-    if ((state.paymentMethod || 'mpesa') === 'mpesa') {
+    if (paymentMethod === 'mpesa') {
       msg += `*Payment Method:* M-Pesa Paybill\n`;
       msg += `• *Business No:* 222111\n`;
       msg += `• *Account No:* 017000029397\n`;
@@ -1890,41 +2097,41 @@ async function checkoutWhatsApp() {
 
     msg += `Please confirm my order availability and advise on pickup/delivery. Thank you!`;
 
-    // 3. Save to local order history log
+    // 3. Save to local order history log (stored locally for all users)
     const orderLog = {
       date: new Date().toLocaleDateString('en-KE', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
       items: state.cart.map(item => `${item.brand} ${item.title} (${item.quantity}x)`).join(', '),
       total: grandTotal,
       method: state.collectionMethod === 'pickup' 
         ? `Pick-up (${state.pickupLocation})` 
-        : 'Courier Delivery'
+        : 'Courier Delivery',
+      order_id: result.order_id || ''
     };
     const pastOrders = jsonParseSafe(localStorage.getItem('britchoice_orders'), []);
     pastOrders.unshift(orderLog);
     localStorage.setItem('britchoice_orders', JSON.stringify(pastOrders));
-
-    // Update Profile dashboard if active
-    if (state.profile) {
-      renderOrderHistory();
-    }
 
     // 4. Clear cart since stock is successfully reserved and reduced
     state.cart = [];
     saveCart();
     updateCartUI();
     
-    // Refresh products in catalog so stock count reduction updates on screen
-    await fetchProducts();
+    // Hide Cart drawer if open
+    const drawer = document.getElementById('cart-drawer');
+    if (drawer) drawer.classList.add('hidden');
 
-    // 5. Open WhatsApp in new tab
-    const encodedMsg = encodeURIComponent(msg);
-    const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMsg}`;
-    window.open(waUrl, '_blank');
+    // Reset checkout button
+    checkoutBtn.disabled = false;
+    checkoutBtn.innerHTML = originalHTML;
+    lucide.createIcons();
 
-  } catch (error) {
-    alert(`Order Aborted: ${error.message}`);
-  } finally {
-    // Restore button state
+    // 5. Open WhatsApp chat with pre-filled message payload
+    const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+    window.open(whatsappUrl, '_blank');
+
+  } catch (err) {
+    console.error('Checkout error:', err);
+    alert(err.message || 'An error occurred during checkout. Please try again.');
     checkoutBtn.disabled = false;
     checkoutBtn.innerHTML = originalHTML;
     lucide.createIcons();

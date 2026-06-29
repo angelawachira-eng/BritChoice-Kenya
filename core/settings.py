@@ -144,3 +144,5 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # CORS Configuration
 CORS_ALLOW_ALL_ORIGINS = True
+
+GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '261424799133-3md851bg6b1vnt30f0p6jc7nicneuq2g.apps.googleusercontent.com')

@@ -32,11 +32,62 @@ class ProductDetailAPIView(generics.RetrieveAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
-
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.db import transaction
+from django.conf import settings
+from django.shortcuts import redirect
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+import time
+import random
+import base64
+import json
+import urllib.request
+from urllib.error import URLError
+
+@method_decorator(csrf_exempt, name='dispatch')
+class GoogleAuthCallbackView(APIView):
+    authentication_classes = []
+    permission_classes = []
+    
+    def post(self, request, *args, **kwargs):
+        token = request.data.get('credential')
+        if not token:
+            return redirect('/')
+            
+        url = f"https://oauth2.googleapis.com/tokeninfo?id_token={token}"
+        try:
+            req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req) as response:
+                if response.status == 200:
+                    payload = json.loads(response.read().decode())
+                    email = payload.get('email')
+                    name = payload.get('name', '')
+                    
+                    if email:
+                        user_data = {
+                            "name": name,
+                            "email": email
+                        }
+                        json_str = json.dumps(user_data)
+                        b64_str = base64.b64encode(json_str.encode()).decode()
+                        
+                        res = redirect('/')
+                        res.set_cookie('google_user_data', b64_str, max_age=300, samesite='Lax')
+                        return res
+        except Exception as e:
+            print("Google Sign-In Redirect callback verification error:", e)
+            
+        return redirect('/')
+
+class ConfigAPIView(APIView):
+    def get(self, request, *args, **kwargs):
+        google_client_id = getattr(settings, 'GOOGLE_CLIENT_ID', '')
+        return Response({
+            "google_client_id": google_client_id
+        }, status=status.HTTP_200_OK)
 
 class ProductCheckoutAPIView(APIView):
     def post(self, request, *args, **kwargs):
@@ -70,6 +121,16 @@ class ProductCheckoutAPIView(APIView):
                     product.stock_count -= qty
                     product.save()
                     
-            return Response({"message": "Stock reduced successfully"}, status=status.HTTP_200_OK)
+            # Generate a stateless unique order confirmation ID
+            order_num = f"{int(time.time()) % 100000:05d}{random.randint(10, 99)}"
+            order_id = f"BC-{order_num}"
+            
+            return Response({
+                "message": "Stock reduced successfully",
+                "order_id": order_id
+            }, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+

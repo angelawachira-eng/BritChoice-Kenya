@@ -18,4 +18,3 @@ class ProductAdmin(admin.ModelAdmin):
     search_fields = ('sku', 'product_name', 'brand', 'category')
     list_filter = ('brand', 'category')
 
-# Register your models here.
