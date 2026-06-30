@@ -1005,7 +1005,23 @@ function setupEventListeners() {
   }
 
   // Geolocation button handler
-  document.getElementById('detect-location-btn').addEventListener('click', detectUserLocation);
+  const detectLocationBtn = document.getElementById('detect-location-btn');
+  if (detectLocationBtn) {
+    detectLocationBtn.addEventListener('click', detectUserLocation);
+  }
+
+  // Map Location Search handlers
+  const searchBtn = document.getElementById('map-search-btn');
+  const mapSearchInput = document.getElementById('map-search-input');
+  if (searchBtn && mapSearchInput) {
+    searchBtn.addEventListener('click', searchMapLocation);
+    mapSearchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        searchMapLocation();
+      }
+    });
+  }
 
   // Footer Navigation Link clicks
   document.getElementById('footer-about-btn').addEventListener('click', () => {
@@ -2202,9 +2218,11 @@ function initDeliveryMap(lat, lon) {
   // Create Map instance
   deliveryMapInstance = L.map('delivery-map').setView([lat, lon], 16);
 
-  // Add OSM base layer
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
+  // Add Google Maps high-detail street base layer (zero billing, high accuracy)
+  L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+    maxZoom: 20,
+    subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+    attribution: 'Map data &copy; Google'
   }).addTo(deliveryMapInstance);
 
   // Add draggable Marker
@@ -2240,7 +2258,45 @@ async function reverseGeocode(lat, lon) {
     });
     if (!response.ok) throw new Error('Geocoding failed');
     const data = await response.json();
-    if (data && data.display_name) {
+    
+    if (data && data.address) {
+      const addr = data.address;
+      const parts = [];
+      
+      // Get building or house number
+      if (addr.building) {
+        parts.push(addr.building);
+      } else if (addr.amenity) {
+        parts.push(addr.amenity);
+      } else if (addr.house_number) {
+        parts.push(addr.house_number);
+      }
+      
+      // Get street/road
+      if (addr.road) {
+        parts.push(addr.road);
+      }
+      
+      // Get estate, neighbourhood, or suburb
+      if (addr.suburb) {
+        parts.push(addr.suburb);
+      } else if (addr.neighbourhood) {
+        parts.push(addr.neighbourhood);
+      }
+      
+      // Get town or city
+      if (addr.town) {
+        parts.push(addr.town);
+      } else if (addr.city) {
+        parts.push(addr.city);
+      } else if (addr.village) {
+        parts.push(addr.village);
+      }
+      
+      const cleanAddress = parts.join(', ');
+      addressTextarea.value = cleanAddress || data.display_name;
+      statusEl.textContent = 'Location resolved!';
+    } else if (data && data.display_name) {
       addressTextarea.value = data.display_name;
       statusEl.textContent = 'Location resolved!';
     } else {
@@ -2268,6 +2324,8 @@ function detectUserLocation() {
       const lon = position.coords.longitude;
       state.deliveryLocation = { lat, lon };
       
+      statusEl.textContent = `Location detected (${lat.toFixed(5)}, ${lon.toFixed(5)}). Resolving address...`;
+      
       initDeliveryMap(lat, lon);
       reverseGeocode(lat, lon);
     },
@@ -2281,6 +2339,54 @@ function detectUserLocation() {
     },
     { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
   );
+}
+
+// Search for a location by text query (estate/landmark)
+async function searchMapLocation() {
+  const searchInput = document.getElementById('map-search-input');
+  const query = searchInput ? searchInput.value.trim() : '';
+  if (!query) return;
+
+  const statusEl = document.getElementById('location-status');
+  statusEl.textContent = 'Searching location...';
+  statusEl.classList.remove('hidden');
+
+  try {
+    // Append ', Kenya' to bounds search specifically inside the country
+    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ', Kenya')}&limit=1`);
+    if (!response.ok) throw new Error('Search failed');
+    const data = await response.json();
+    
+    if (data && data.length > 0) {
+      const lat = parseFloat(data[0].lat);
+      const lon = parseFloat(data[0].lon);
+      
+      state.deliveryLocation = { lat, lon };
+      
+      // Ensure map container is visible
+      const mapContainer = document.getElementById('delivery-map-container');
+      if (mapContainer) mapContainer.classList.remove('hidden');
+      
+      initDeliveryMap(lat, lon);
+      
+      // Center map on result and update markers
+      if (deliveryMapInstance) {
+        deliveryMapInstance.setView([lat, lon], 16);
+      }
+      if (deliveryMarkerInstance) {
+        deliveryMarkerInstance.setLatLng([lat, lon]);
+      }
+      
+      // Resolve address field
+      reverseGeocode(lat, lon);
+      statusEl.textContent = 'Location found!';
+    } else {
+      statusEl.textContent = 'Location not found. Try different search terms.';
+    }
+  } catch (err) {
+    console.error('Search error:', err);
+    statusEl.textContent = 'Network error. Please search again or enter address manually.';
+  }
 }
 
 // ==========================================
